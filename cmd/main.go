@@ -1,15 +1,10 @@
 package main
 
-import (
-	"github.com/ducktyst/bar_recomend/internal/analyzer/kazanexpress"
-	// "github.com/ducktyst/bar_recomend/internal/analyzer/ozon"
-	// "github.com/ducktyst/bar_recomend/internal/analyzer/ym"
-)
+// "github.com/ducktyst/bar_recomend/internal/analyzer/ozon"
 
-// import (
-// 	"github.com/bieber/barcode"
-// 	"github.com/sirupsen/logrus"
-// )
+import (
+	"github.com/ducktyst/bar_recomend/internal/analyzer/examples"
+)
 
 // func main() {
 // 	scanner := barcode.NewScanner()
@@ -47,5 +42,7 @@ func main() {
 	// common.ExampleScrape()
 	// ym.Scrap()
 	// ozon.Scrap()
-	kazanexpress.Scrap()
+	// kazanexpress.Scrap()
+	// kazanexpress.ParseWithSelenium()
+	examples.ExampleGoTebekaSelenium()
 }

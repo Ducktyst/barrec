@@ -10,11 +10,13 @@ import (
 	"github.com/ducktyst/bar_recomend/internal/analyzer/common"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
+
+	goselenium "github.com/bunsenapp/go-selenium" // https://github.com/SeleniumHQ/docker-selenium
 )
 
 var SEARCH_URL = "https://kazanexpress.ru/search?query={{.search_text}}&sorting=price&ordering=ascending"
 
-func Scrap() {
+func ScrapHTML() {
 	// var header string
 
 	c := colly.NewCollector(
@@ -25,7 +27,8 @@ func Scrap() {
 	extensions.RandomUserAgent(c)
 	extensions.Referer(c)
 	c.SetRequestTimeout(20 * time.Second)
-	// c.WithTransport() // https://github.com/gocolly/colly/issues/145
+
+	c.WithTransport(http.NewFileTransport(http.Dir("/"))) // http.Dir(".") what means for FileTransport?
 
 	// Подготовка колбэков
 	c.OnHTML("body", func(h *colly.HTMLElement) {
@@ -72,3 +75,67 @@ func Scrap() {
 		https://github.com/gocolly/colly/issues/4
 	*/
 }
+
+func ParseWithSelenium() {
+	// Create a capabilities object.
+	capabilities := goselenium.Capabilities{}
+
+	// Populate it with the browser you wish to use.
+	capabilities.SetBrowser(goselenium.ChromeBrowser())
+
+	// Initialise a new web driver.
+	driver, err := goselenium.NewSeleniumWebDriver("http://localhost:4444/wd/hub", capabilities)
+	// driverPath := testdata.ChromeDriverPath()
+	// driver, err := goselenium.NewSeleniumWebDriver(driverPath, capabilities)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	// Create a session.
+
+	_, err = driver.CreateSession()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(0)
+
+	// Defer the deletion of the session.
+	defer func() {
+		fmt.Println("Delete Session")
+		driver.DeleteSession()
+	}()
+
+	// Navigate to Google.
+	resp, err := driver.Go(common.GenerateSearchUrl(SEARCH_URL, "полотенце"))
+	if err != nil {
+		fmt.Println("driver.Go error: ", err)
+		return
+	}
+
+	fmt.Println(1)
+	ok := driver.Wait(goselenium.UntilElementPresent(goselenium.ByCSSSelector("body")), 1*time.Second, 10*time.Millisecond)
+	if !ok {
+		fmt.Println("Wait timed out :<")
+		return
+	}
+
+	fmt.Println(2)
+
+	el, err := driver.FindElement(goselenium.ByCSSSelector("body"))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(3)
+
+	fmt.Println(el.Text)
+
+	fmt.Printf("\n%#v \n", resp)
+	return
+}
+
+// примеры безинтерфейса браузера https://github.com/chromedp/examples

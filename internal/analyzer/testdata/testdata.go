@@ -17,3 +17,10 @@ func KazanExpressPath() string {
 	// fmt.Println(wd)
 	return fpath
 }
+
+func ChromeDriverPath() string {
+	_, filename, _, _ := runtime.Caller(0)
+	dir, _ := filepath.Split(filename)
+	fpath := filepath.Join(dir, "chromedriver_mac64")
+	return fpath
+}
