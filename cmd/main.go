@@ -3,7 +3,10 @@ package main
 // "github.com/ducktyst/bar_recomend/internal/analyzer/ozon"
 
 import (
-	"github.com/ducktyst/bar_recomend/internal/analyzer/examples"
+	"fmt"
+	"time"
+
+	"github.com/ducktyst/bar_recomend/internal/analyzer/kazanexpress"
 )
 
 // func main() {
@@ -23,26 +26,11 @@ import (
 var path = "/Users/aleksej/Projects/bar_recommend/static/barcode_good_quality.jpg"
 
 func main() {
-	// fin, err := os.Open(path)
-	// if err != nil {
-	// 	logrus.Errorf("error open file", err)
-	// 	panic(err)
-	// }
-	// barcode, err := barcode_scanner.ScanBarCode(fin)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// product, err := barcodefinder.GetProductInfo(barcode)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(product.BarCode, product.Name, product.Prices)
-	// analyzer.CollyExample()
-	// analyzer.ScapPort()
-	// common.ExampleScrape()
-	// ym.Scrap()
-	// ozon.Scrap()
-	// kazanexpress.Scrap()
-	// kazanexpress.ParseWithSelenium()
-	examples.ExampleGoTebekaSelenium()
+	for i := range []int{1, 2, 3, 4, 5} {
+		fmt.Print("\r", 5-i)
+		time.Sleep(time.Second)
+	}
+	fmt.Print("\r")
+
+	kazanexpress.ParseWithSelenium()
 }
