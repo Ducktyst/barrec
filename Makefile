@@ -13,3 +13,10 @@ driver-window: stop-driver
 stop-driver:
 	@docker rm -f selen
 
+goose-sqlite:
+	goose -dir deployments/migrations sqlite3 ./foo.db create init sql
+
+goose-up:
+	goose -dir deployments/migrations sqlite3 ./foo.db up
+
+# goose postgres "user=postgres password=postgres dbname=postgres sslmode=disable" status
