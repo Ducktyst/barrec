@@ -7,19 +7,23 @@ import (
 
 type site uint
 
-const ( // iota is reset to 0
-	citilink = iota // c0 == 0
-	dns      = iota // c1 == 1
-	c2       = iota // c2 == 2
+const (
+	Citilink     = iota // == 0
+	dns          = iota // == 1
+	yandexmarket = iota
+	KazanExpress = iota
+	ozon         = iota
 )
 
 // getPriceFromCitilink
 func GetPriceFrom(site site, articul string) int {
 	switch site {
-	case citilink:
+	case Citilink:
 		return getPriceFromCitilink(articul)
 	case dns:
 		return getPriceFromDns(articul)
+	case kazanexpress:
+		return kazanexpress.ParseWithSelenium(articul)
 	}
 	return 0
 }

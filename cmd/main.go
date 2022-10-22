@@ -5,8 +5,6 @@ package main
 import (
 	"fmt"
 	"time"
-
-	"github.com/ducktyst/bar_recomend/internal/analyzer/kazanexpress"
 )
 
 // func main() {
@@ -32,5 +30,12 @@ func main() {
 	}
 	fmt.Print("\r")
 
-	kazanexpress.ParseWithSelenium()
+	articul = scanner.ScanBarCode()
+	common.GetMinPriceFrom(common.KazanExpress, articul)
+}
+
+func initCommands() {
+	// restart container by cron, по причине его нестабильности
+	// очередь запросов на время перезапуска докера
+	// оркестровка между запущенными интансами докера + селениума
 }

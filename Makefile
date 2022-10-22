@@ -19,4 +19,4 @@ goose-sqlite:
 goose-up:
 	goose -dir deployments/migrations sqlite3 ./foo.db up
 
-# goose postgres "user=postgres password=postgres dbname=postgres sslmode=disable" status
+# goose postgres "user=pricescan password=postgres dbname=postgres sslmode=disable" status
