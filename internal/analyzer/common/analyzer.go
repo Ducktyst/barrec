@@ -2,30 +2,30 @@ package common
 
 import (
 	"bytes"
+	"errors"
 	"text/template"
+
+	"github.com/ducktyst/bar_recomend/internal/analyzer/kazanexpress"
 )
 
 type site uint
 
 const (
 	Citilink     = iota // == 0
-	dns          = iota // == 1
-	yandexmarket = iota
+	DNS          = iota // == 1
+	YandexMarket = iota
 	KazanExpress = iota
-	ozon         = iota
+	Ozon         = iota
 )
 
 // getPriceFromCitilink
-func GetPriceFrom(site site, articul string) int {
+func GetPriceFrom(site site, articul string) (int, error) {
 	switch site {
-	case Citilink:
-		return getPriceFromCitilink(articul)
-	case dns:
-		return getPriceFromDns(articul)
-	case kazanexpress:
-		return kazanexpress.ParseWithSelenium(articul)
+	case KazanExpress:
+		url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
+		return kazanexpress.ParseWithSelenium(url)
 	}
-	return 0
+	return 0, errors.New("unknown error")
 }
 
 // https://www.scrapingbee.com/blog/web-scraping-go/

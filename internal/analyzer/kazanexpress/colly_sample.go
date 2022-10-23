@@ -1,13 +1,14 @@
 package kazanexpress
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/ducktyst/bar_recomend/internal/analyzer/common"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
 	// https://github.com/SeleniumHQ/docker-selenium
@@ -58,7 +59,7 @@ func ScrapHTML() {
 
 	requestDatqBuf := strings.NewReader("request data")
 
-	url := common.GenerateSearchUrl(SEARCH_URL, "полотенце")
+	url := generateSearchUrl(SEARCH_URL, "полотенце")
 	// url = testdata.KazanExpressPath()
 
 	// err := c.Visit(url)
@@ -71,4 +72,13 @@ func ScrapHTML() {
 		Пожалуйста, включите JavaScript, чтобы воспользоваться сайтом!
 		https://github.com/gocolly/colly/issues/4
 	*/
+}
+
+func generateSearchUrl(url, search_text string) string {
+	t := template.New("search url")
+	t.Parse(url)
+
+	buffer := bytes.NewBufferString("")
+	t.Execute(buffer, map[string]string{"search_text": search_text}) // TODO: search_text to const
+	return string(buffer.Bytes())
 }
