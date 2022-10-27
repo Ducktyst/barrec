@@ -1,0 +1,119 @@
+swagger: '2.0'
+info:
+  description: '# Introduction
+
+    Almost REST API, auth by sid in a cookie.
+
+    '
+  title: backend
+  version: v1
+schemes:
+  - http
+  - https
+basePath: /api
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  cookieAuth:
+    in: header
+    name: cookie
+    type: apiKey
+definitions:
+  Recommendation:
+    type: object
+    properties:
+      articul:
+        type: string
+      price:
+        type: number
+        format: float64
+      barcode:
+        type: string
+      url:
+        type: string
+  FilterValues:
+    type: array
+    description: Список значений для фильтра
+    items:
+      $ref: '#/definitions/KeyValue'
+  KeyValue:
+    type: object
+    properties:
+      key:
+        type: string
+        description: Ключ
+        readOnly: true
+        x-omitempty: false
+      value:
+        type: string
+        description: Значение
+        readOnly: true
+        x-omitempty: false
+  ID:
+    type: object
+    properties:
+      id:
+        type: integer
+  GenericError:
+    properties:
+      code:
+        format: int
+        type: integer
+        x-go-name: Code
+        readOnly: true
+        x-omitempty: false
+      message:
+        type: string
+        x-go-name: Msg
+        readOnly: true
+        x-omitempty: false
+    additionalProperties:
+      type: object
+    type: object
+
+parameters:
+  barcode:
+    in: path
+    name: barcode
+    required: true
+    type: integer
+    format: int64
+    minimum: 1
+  filters:
+    in: query
+    name: filters
+    type: string
+    default: ""
+responses:
+  # ID:
+  #   description: ok
+  #   schema:
+  #     $ref: '#/definitions/ID'
+  GenericError:
+    description: Generic error
+    schema:
+      $ref: '#/definitions/GenericError'
+paths:
+  /recommendations/:
+    post:
+      summary: Получить рекомендации по штрихкоду
+      parameters:
+        - in: formData
+          name: content
+          type: file
+          required: true
+          description: Изображение со штрикодом
+      consumes:
+        - multipart/form-data
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Recommendation'
+      security:
+        - cookieAuth: []
+    

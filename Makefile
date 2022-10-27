@@ -20,3 +20,20 @@ goose-up:
 	goose -dir deployments/migrations sqlite3 ./foo.db up
 
 # goose postgres "user=pricescan password=postgres dbname=postgres sslmode=disable" status
+
+
+clean-generate:  conv-swag-clean # где лучше поместить очистку устаревших файлов?
+	rm -rf ./internal/app/apihandler/generate
+
+.PHONY: clean-generate
+
+swag-clean:
+	rm -rf ./internal/app/apihandler/generated/
+
+swagger-generate: swag-clean
+	mkdir -p ./internal/app/apihandler/generated/
+	swagger generate server  --template-dir ./swagger-templates -C ./swagger-templates/default-server.yml -A pocket_assistant -m generated/specmodels -s generated -a specops -t ./internal/app/apihandler/ -f ./api/swagger.yaml
+
+.PHONY: swagger-generate
+
+# -m generated/specmodels -s generated -a specops

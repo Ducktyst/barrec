@@ -2,13 +2,14 @@ package barcode
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
 
-	"github.com/ducktyst/bar_recomend/internal/analyzer/common"
+	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/common"
 )
 
 type Price struct {
@@ -68,6 +69,7 @@ func GetProductArticul(barcode string) (string, error) {
 	if name == "" {
 		return "", ProductNotFound
 	}
+	fmt.Println(name)
 	return name, nil
 }
 

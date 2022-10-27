@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ScanBarCode(fin *os.File) (string, error) {
+func ScanBarCodeFile(fin *os.File) (string, error) {
 	defer fin.Close()
 	src, err := jpeg.Decode(fin)
 	if err != nil {
@@ -21,9 +21,6 @@ func ScanBarCode(fin *os.File) (string, error) {
 	scanner := barcode.NewScanner().SetEnabledAll(true)
 
 	symbols, _ := scanner.ScanImage(img)
-	// for _, s := range symbols {
-	// 	fmt.Println(s.Type.Name(), s.Data, s.Quality, s.Boundary)
-	// }
 
 	if len(symbols) != 1 {
 		return "", fmt.Errorf("image must contain exactly one barcode")
