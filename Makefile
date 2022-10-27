@@ -29,10 +29,16 @@ clean-generate:  conv-swag-clean # где лучше поместить очис
 
 swag-clean:
 	rm -rf ./internal/app/apihandler/generated/
+	# генератор создает в generated
 
 swagger-generate: swag-clean
 	mkdir -p ./internal/app/apihandler/generated/
-	swagger generate server  --template-dir ./swagger-templates -C ./swagger-templates/default-server.yml -A pocket_assistant -m generated/specmodels -s generated -a specops -t ./internal/app/apihandler/ -f ./api/swagger.yaml
+	swagger generate server --template-dir ./swagger-templates/templates/server -C ./swagger-templates/default-server.yml -A pocket_assistant -m generated/specmodels -s generated -a specops -t ./internal/app/apihandler/ -f ./api/swagger.yaml
+
+swagger:
+	mkdir -p ./generated/
+	swagger generate server --template-dir ./swagger-templates/templates/server -A recommendator -m generated/specmodels -a specops -t ./generated/ -f ./api/swagger.yaml
+
 
 .PHONY: swagger-generate
 

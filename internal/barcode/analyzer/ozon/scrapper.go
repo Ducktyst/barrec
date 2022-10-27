@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/ducktyst/bar_recomend/internal/analyzer/common"
+	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/common"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
 )

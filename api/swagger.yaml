@@ -9,7 +9,6 @@ info:
   version: v1
 schemes:
   - http
-  - https
 basePath: /api
 consumes:
   - application/json

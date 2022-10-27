@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ducktyst/bar_recomend/internal/analyzer/testdata"
+	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/testdata"
 
 	"github.com/tebeka/selenium"
 )
