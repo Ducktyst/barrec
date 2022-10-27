@@ -12,16 +12,16 @@ import (
 )
 
 // PostRecommendationsHandlerFunc turns a function with the right signature into a post recommendations handler
-type PostRecommendationsHandlerFunc func(PostRecommendationsParams, interface{}) middleware.Responder
+type PostRecommendationsHandlerFunc func(PostRecommendationsParams) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostRecommendationsHandlerFunc) Handle(params PostRecommendationsParams, principal interface{}) middleware.Responder {
-	return fn(params, principal)
+func (fn PostRecommendationsHandlerFunc) Handle(params PostRecommendationsParams) middleware.Responder {
+	return fn(params)
 }
 
 // PostRecommendationsHandler interface for that can handle valid post recommendations params
 type PostRecommendationsHandler interface {
-	Handle(PostRecommendationsParams, interface{}) middleware.Responder
+	Handle(PostRecommendationsParams) middleware.Responder
 }
 
 // NewPostRecommendations creates a new http.Handler for the post recommendations operation
@@ -45,25 +45,12 @@ func (o *PostRecommendations) ServeHTTP(rw http.ResponseWriter, r *http.Request)
 		*r = *rCtx
 	}
 	var Params = NewPostRecommendationsParams()
-	uprinc, aCtx, err := o.Context.Authorize(r, route)
-	if err != nil {
-		o.Context.Respond(rw, r, route.Produces, route, err)
-		return
-	}
-	if aCtx != nil {
-		*r = *aCtx
-	}
-	var principal interface{}
-	if uprinc != nil {
-		principal = uprinc.(interface{}) // this is really a interface{}, I promise
-	}
-
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params, principal) // actually handle the request
+	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

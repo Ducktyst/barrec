@@ -1,10 +1,6 @@
 swagger: '2.0'
 info:
-  description: '# Introduction
-
-    Almost REST API, auth by sid in a cookie.
-
-    '
+  description: '# Introduction'
   title: backend
   version: v1
 schemes:
@@ -14,11 +10,6 @@ consumes:
   - application/json
 produces:
   - application/json
-securityDefinitions:
-  cookieAuth:
-    in: header
-    name: cookie
-    type: apiKey
 definitions:
   Recommendation:
     type: object
@@ -86,10 +77,6 @@ parameters:
     type: string
     default: ""
 responses:
-  # ID:
-  #   description: ok
-  #   schema:
-  #     $ref: '#/definitions/ID'
   GenericError:
     description: Generic error
     schema:
@@ -113,6 +100,3 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Recommendation'
-      security:
-        - cookieAuth: []
-    

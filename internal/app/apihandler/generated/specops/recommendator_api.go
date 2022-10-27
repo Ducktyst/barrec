@@ -20,9 +20,9 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// NewPocketAssistantAPI creates a new PocketAssistant instance
-func NewPocketAssistantAPI(spec *loads.Document) *PocketAssistantAPI {
-	return &PocketAssistantAPI{
+// NewRecommendatorAPI creates a new Recommendator instance
+func NewRecommendatorAPI(spec *loads.Document) *RecommendatorAPI {
+	return &RecommendatorAPI{
 		handlers:            make(map[string]map[string]http.Handler),
 		formats:             strfmt.Default,
 		defaultConsumes:     "application/json",
@@ -43,24 +43,14 @@ func NewPocketAssistantAPI(spec *loads.Document) *PocketAssistantAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		PostRecommendationsHandler: PostRecommendationsHandlerFunc(func(params PostRecommendationsParams, principal interface{}) middleware.Responder {
+		PostRecommendationsHandler: PostRecommendationsHandlerFunc(func(params PostRecommendationsParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostRecommendations has not yet been implemented")
 		}),
-
-		// Applies when the "cookie" header is set
-		CookieAuthAuth: func(token string) (interface{}, error) {
-			return nil, errors.NotImplemented("api key auth (cookieAuth) cookie from header param [cookie] has not yet been implemented")
-		},
-		// default authorizer is authorized meaning no requests are blocked
-		APIAuthorizer: security.Authorized(),
 	}
 }
 
-/*
-PocketAssistantAPI # Introduction
-Almost REST API, auth by sid in a cookie.
-*/
-type PocketAssistantAPI struct {
+/*RecommendatorAPI # Introduction */
+type RecommendatorAPI struct {
 	spec            *loads.Document
 	context         *middleware.Context
 	handlers        map[string]map[string]http.Handler
@@ -95,13 +85,6 @@ type PocketAssistantAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
-	// CookieAuthAuth registers a function that takes a token and returns a principal
-	// it performs authentication based on an api key cookie provided in the header
-	CookieAuthAuth func(string) (interface{}, error)
-
-	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
-	APIAuthorizer runtime.Authorizer
-
 	// PostRecommendationsHandler sets the operation handler for the post recommendations operation
 	PostRecommendationsHandler PostRecommendationsHandler
 
@@ -125,52 +108,52 @@ type PocketAssistantAPI struct {
 }
 
 // UseRedoc for documentation at /docs
-func (o *PocketAssistantAPI) UseRedoc() {
+func (o *RecommendatorAPI) UseRedoc() {
 	o.useSwaggerUI = false
 }
 
 // UseSwaggerUI for documentation at /docs
-func (o *PocketAssistantAPI) UseSwaggerUI() {
+func (o *RecommendatorAPI) UseSwaggerUI() {
 	o.useSwaggerUI = true
 }
 
 // SetDefaultProduces sets the default produces media type
-func (o *PocketAssistantAPI) SetDefaultProduces(mediaType string) {
+func (o *RecommendatorAPI) SetDefaultProduces(mediaType string) {
 	o.defaultProduces = mediaType
 }
 
 // SetDefaultConsumes returns the default consumes media type
-func (o *PocketAssistantAPI) SetDefaultConsumes(mediaType string) {
+func (o *RecommendatorAPI) SetDefaultConsumes(mediaType string) {
 	o.defaultConsumes = mediaType
 }
 
 // SetSpec sets a spec that will be served for the clients.
-func (o *PocketAssistantAPI) SetSpec(spec *loads.Document) {
+func (o *RecommendatorAPI) SetSpec(spec *loads.Document) {
 	o.spec = spec
 }
 
 // DefaultProduces returns the default produces media type
-func (o *PocketAssistantAPI) DefaultProduces() string {
+func (o *RecommendatorAPI) DefaultProduces() string {
 	return o.defaultProduces
 }
 
 // DefaultConsumes returns the default consumes media type
-func (o *PocketAssistantAPI) DefaultConsumes() string {
+func (o *RecommendatorAPI) DefaultConsumes() string {
 	return o.defaultConsumes
 }
 
 // Formats returns the registered string formats
-func (o *PocketAssistantAPI) Formats() strfmt.Registry {
+func (o *RecommendatorAPI) Formats() strfmt.Registry {
 	return o.formats
 }
 
 // RegisterFormat registers a custom format validator
-func (o *PocketAssistantAPI) RegisterFormat(name string, format strfmt.Format, validator strfmt.Validator) {
+func (o *RecommendatorAPI) RegisterFormat(name string, format strfmt.Format, validator strfmt.Validator) {
 	o.formats.Add(name, format, validator)
 }
 
-// Validate validates the registrations in the PocketAssistantAPI
-func (o *PocketAssistantAPI) Validate() error {
+// Validate validates the registrations in the RecommendatorAPI
+func (o *RecommendatorAPI) Validate() error {
 	var unregistered []string
 
 	if o.JSONConsumer == nil {
@@ -182,10 +165,6 @@ func (o *PocketAssistantAPI) Validate() error {
 
 	if o.JSONProducer == nil {
 		unregistered = append(unregistered, "JSONProducer")
-	}
-
-	if o.CookieAuthAuth == nil {
-		unregistered = append(unregistered, "CookieAuth")
 	}
 
 	if o.PostRecommendationsHandler == nil {
@@ -200,32 +179,23 @@ func (o *PocketAssistantAPI) Validate() error {
 }
 
 // ServeErrorFor gets a error handler for a given operation id
-func (o *PocketAssistantAPI) ServeErrorFor(operationID string) func(http.ResponseWriter, *http.Request, error) {
+func (o *RecommendatorAPI) ServeErrorFor(operationID string) func(http.ResponseWriter, *http.Request, error) {
 	return o.ServeError
 }
 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
-func (o *PocketAssistantAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
-	result := make(map[string]runtime.Authenticator)
-	for name := range schemes {
-		switch name {
-		case "cookieAuth":
-			scheme := schemes[name]
-			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, o.CookieAuthAuth)
-
-		}
-	}
-	return result
+func (o *RecommendatorAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
+	return nil
 }
 
 // Authorizer returns the registered authorizer
-func (o *PocketAssistantAPI) Authorizer() runtime.Authorizer {
-	return o.APIAuthorizer
+func (o *RecommendatorAPI) Authorizer() runtime.Authorizer {
+	return nil
 }
 
 // ConsumersFor gets the consumers for the specified media types.
 // MIME type parameters are ignored here.
-func (o *PocketAssistantAPI) ConsumersFor(mediaTypes []string) map[string]runtime.Consumer {
+func (o *RecommendatorAPI) ConsumersFor(mediaTypes []string) map[string]runtime.Consumer {
 	result := make(map[string]runtime.Consumer, len(mediaTypes))
 	for _, mt := range mediaTypes {
 		switch mt {
@@ -244,7 +214,7 @@ func (o *PocketAssistantAPI) ConsumersFor(mediaTypes []string) map[string]runtim
 
 // ProducersFor gets the producers for the specified media types.
 // MIME type parameters are ignored here.
-func (o *PocketAssistantAPI) ProducersFor(mediaTypes []string) map[string]runtime.Producer {
+func (o *RecommendatorAPI) ProducersFor(mediaTypes []string) map[string]runtime.Producer {
 	result := make(map[string]runtime.Producer, len(mediaTypes))
 	for _, mt := range mediaTypes {
 		switch mt {
@@ -260,7 +230,7 @@ func (o *PocketAssistantAPI) ProducersFor(mediaTypes []string) map[string]runtim
 }
 
 // HandlerFor gets a http.Handler for the provided operation method and path
-func (o *PocketAssistantAPI) HandlerFor(method, path string) (http.Handler, bool) {
+func (o *RecommendatorAPI) HandlerFor(method, path string) (http.Handler, bool) {
 	if o.handlers == nil {
 		return nil, false
 	}
@@ -275,8 +245,8 @@ func (o *PocketAssistantAPI) HandlerFor(method, path string) (http.Handler, bool
 	return h, ok
 }
 
-// Context returns the middleware context for the pocket assistant API
-func (o *PocketAssistantAPI) Context() *middleware.Context {
+// Context returns the middleware context for the recommendator API
+func (o *RecommendatorAPI) Context() *middleware.Context {
 	if o.context == nil {
 		o.context = middleware.NewRoutableContext(o.spec, o, nil)
 	}
@@ -284,7 +254,7 @@ func (o *PocketAssistantAPI) Context() *middleware.Context {
 	return o.context
 }
 
-func (o *PocketAssistantAPI) initHandlerCache() {
+func (o *RecommendatorAPI) initHandlerCache() {
 	o.Context() // don't care about the result, just that the initialization happened
 	if o.handlers == nil {
 		o.handlers = make(map[string]map[string]http.Handler)
@@ -298,7 +268,7 @@ func (o *PocketAssistantAPI) initHandlerCache() {
 
 // Serve creates a http handler to serve the API over HTTP
 // can be used directly in http.ListenAndServe(":8000", api.Serve(nil))
-func (o *PocketAssistantAPI) Serve(builder middleware.Builder) http.Handler {
+func (o *RecommendatorAPI) Serve(builder middleware.Builder) http.Handler {
 	o.Init()
 
 	if o.Middleware != nil {
@@ -311,24 +281,24 @@ func (o *PocketAssistantAPI) Serve(builder middleware.Builder) http.Handler {
 }
 
 // Init allows you to just initialize the handler cache, you can then recompose the middleware as you see fit
-func (o *PocketAssistantAPI) Init() {
+func (o *RecommendatorAPI) Init() {
 	if len(o.handlers) == 0 {
 		o.initHandlerCache()
 	}
 }
 
 // RegisterConsumer allows you to add (or override) a consumer for a media type.
-func (o *PocketAssistantAPI) RegisterConsumer(mediaType string, consumer runtime.Consumer) {
+func (o *RecommendatorAPI) RegisterConsumer(mediaType string, consumer runtime.Consumer) {
 	o.customConsumers[mediaType] = consumer
 }
 
 // RegisterProducer allows you to add (or override) a producer for a media type.
-func (o *PocketAssistantAPI) RegisterProducer(mediaType string, producer runtime.Producer) {
+func (o *RecommendatorAPI) RegisterProducer(mediaType string, producer runtime.Producer) {
 	o.customProducers[mediaType] = producer
 }
 
 // AddMiddlewareFor adds a http middleware to existing handler
-func (o *PocketAssistantAPI) AddMiddlewareFor(method, path string, builder middleware.Builder) {
+func (o *RecommendatorAPI) AddMiddlewareFor(method, path string, builder middleware.Builder) {
 	um := strings.ToUpper(method)
 	if path == "/" {
 		path = ""

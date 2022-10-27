@@ -1,7 +1,7 @@
 all: stop-driver driver run
 
 run:
-	go run ./cmd/main.go
+	go run cmd/recommendator-server/main.go
 
 # https://github.com/SeleniumHQ/docker-selenium
 driver: stop-driver
@@ -33,13 +33,7 @@ swag-clean:
 
 swagger-generate: swag-clean
 	mkdir -p ./internal/app/apihandler/generated/
-	swagger generate server --template-dir ./swagger-templates/templates/server -C ./swagger-templates/default-server.yml -A pocket_assistant -m generated/specmodels -s generated -a specops -t ./internal/app/apihandler/ -f ./api/swagger.yaml
-
-swagger:
-	mkdir -p ./generated/
-	swagger generate server --template-dir ./swagger-templates/templates/server -A recommendator -m generated/specmodels -a specops -t ./generated/ -f ./api/swagger.yaml
+	swagger generate server --exclude-main -A recommendator -m generated/specmodels -s generated -a specops -t ./internal/app/apihandler/ -f ./api/swagger.yaml
 
 
 .PHONY: swagger-generate
-
-# -m generated/specmodels -s generated -a specops

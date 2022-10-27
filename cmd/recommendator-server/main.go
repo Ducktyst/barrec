@@ -9,22 +9,33 @@ import (
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
 
-	"github.com/ducktyst/bar_recomend/generated/restapi"
-	"github.com/ducktyst/bar_recomend/generated/restapi/specops"
+	"github.com/ducktyst/bar_recomend/internal/app/apihandler"
+	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated"
+	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 )
+
+const port = 8089
 
 func main() {
 
-	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
+	swaggerSpec, err := loads.Embedded(generated.SwaggerJSON, generated.FlatSwaggerJSON)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	api := specops.NewRecommendatorAPI(swaggerSpec)
-	server := restapi.NewServer(api)
+
+	service := apihandler.NewRecommendatorService()
+	api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(service.PostRecommendationsHandler)
+
+	server := generated.NewServer(api)
+	server.Port = port
+
 	defer server.Shutdown()
 
 	parser := flags.NewParser(server, flags.Default)
+	// parser.ShortDescription = "backend"
+	// parser.LongDescription = "# Introduction"
 	server.ConfigureFlags()
 	for _, optsGroup := range api.CommandLineOptionsGroups {
 		_, err := parser.AddGroup(optsGroup.ShortDescription, optsGroup.LongDescription, optsGroup.Options)
