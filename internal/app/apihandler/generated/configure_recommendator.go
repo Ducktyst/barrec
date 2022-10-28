@@ -1,6 +1,6 @@
 // This file is safe to edit. Once it exists it will not be overwritten
 
-package apihandler
+package generated
 
 import (
 	"crypto/tls"
@@ -10,6 +10,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
+	"github.com/ducktyst/bar_recomend/internal/app/apihandler"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 )
 
@@ -40,8 +41,7 @@ func configureAPI(api *specops.RecommendatorAPI) http.Handler {
 
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// specops.PostRecommendationsMaxParseMemory = 32 << 20
-
-	service := NewRecommendatorService()
+	service := apihandler.NewRecommendatorService()
 	api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(service.GetRecommendationsBarcodeHandler)
 	api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(service.PostRecommendationsHandler)
 
