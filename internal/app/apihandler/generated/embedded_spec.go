@@ -40,7 +40,7 @@ func init() {
         "consumes": [
           "multipart/form-data"
         ],
-        "summary": "Получить рекомендации по штрихкоду",
+        "summary": "Получить рекомендации по штрихкоду с изображения",
         "parameters": [
           {
             "type": "file",
@@ -52,7 +52,32 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "перечисление альтернатив",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recommendation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recommendations/{barcode}": {
+      "get": {
+        "summary": "Получить рекомендации по штрихкоду",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "штрихкод товара",
+            "name": "barcode",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "список альтернатив",
             "schema": {
               "type": "array",
               "items": {
@@ -139,9 +164,7 @@ func init() {
   },
   "parameters": {
     "barcode": {
-      "minimum": 1,
-      "type": "integer",
-      "format": "int64",
+      "type": "string",
       "name": "barcode",
       "in": "path",
       "required": true
@@ -185,7 +208,7 @@ func init() {
         "consumes": [
           "multipart/form-data"
         ],
-        "summary": "Получить рекомендации по штрихкоду",
+        "summary": "Получить рекомендации по штрихкоду с изображения",
         "parameters": [
           {
             "type": "file",
@@ -197,7 +220,32 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "",
+            "description": "перечисление альтернатив",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recommendation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/recommendations/{barcode}": {
+      "get": {
+        "summary": "Получить рекомендации по штрихкоду",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "штрихкод товара",
+            "name": "barcode",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "список альтернатив",
             "schema": {
               "type": "array",
               "items": {
@@ -284,9 +332,7 @@ func init() {
   },
   "parameters": {
     "barcode": {
-      "minimum": 1,
-      "type": "integer",
-      "format": "int64",
+      "type": "string",
       "name": "barcode",
       "in": "path",
       "required": true

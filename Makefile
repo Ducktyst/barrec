@@ -35,5 +35,13 @@ swagger-generate: swag-clean
 	mkdir -p ./internal/app/apihandler/generated/
 	swagger generate server --exclude-main -A recommendator -m generated/specmodels -s generated -a specops -t ./internal/app/apihandler/ -f ./api/swagger.yaml
 
+swagger:
+	mkdir -p ./internal/app/apihandler/generated2/
+	swagger generate server --exclude-main \
+		-A recommendator -m generated2/specmodels -s generated2 -a specops \
+		--template-dir ./swagger-templates/templates/server -C ./swagger-templates/default-server.yml \
+		--target=./internal/app/apihandler/ -f ./api/swagger.yaml
+
+
 
 .PHONY: swagger-generate

@@ -68,9 +68,7 @@ parameters:
     in: path
     name: barcode
     required: true
-    type: integer
-    format: int64
-    minimum: 1
+    type: string
   filters:
     in: query
     name: filters
@@ -82,9 +80,25 @@ responses:
     schema:
       $ref: '#/definitions/GenericError'
 paths:
+  /recommendations/{barcode}:
+    get:
+      summary: Получить рекомендации по штрихкоду 
+      parameters:
+        - in: path
+          name: barcode
+          type: string
+          required: true
+          description: штрихкод товара
+      responses:
+        '200':
+          description: 'список альтернатив'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Recommendation'
   /recommendations/:
     post:
-      summary: Получить рекомендации по штрихкоду
+      summary: Получить рекомендации по штрихкоду с изображения
       parameters:
         - in: formData
           name: content
@@ -95,8 +109,9 @@ paths:
         - multipart/form-data
       responses:
         '200':
-          description: ''
+          description: 'перечисление альтернатив'
           schema:
             type: array
             items:
               $ref: '#/definitions/Recommendation'
+  

@@ -43,6 +43,9 @@ func NewRecommendatorAPI(spec *loads.Document) *RecommendatorAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		GetRecommendationsBarcodeHandler: GetRecommendationsBarcodeHandlerFunc(func(params GetRecommendationsBarcodeParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetRecommendationsBarcode has not yet been implemented")
+		}),
 		PostRecommendationsHandler: PostRecommendationsHandlerFunc(func(params PostRecommendationsParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostRecommendations has not yet been implemented")
 		}),
@@ -85,6 +88,8 @@ type RecommendatorAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// GetRecommendationsBarcodeHandler sets the operation handler for the get recommendations barcode operation
+	GetRecommendationsBarcodeHandler GetRecommendationsBarcodeHandler
 	// PostRecommendationsHandler sets the operation handler for the post recommendations operation
 	PostRecommendationsHandler PostRecommendationsHandler
 
@@ -167,6 +172,9 @@ func (o *RecommendatorAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.GetRecommendationsBarcodeHandler == nil {
+		unregistered = append(unregistered, "GetRecommendationsBarcodeHandler")
+	}
 	if o.PostRecommendationsHandler == nil {
 		unregistered = append(unregistered, "PostRecommendationsHandler")
 	}
@@ -260,6 +268,10 @@ func (o *RecommendatorAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/recommendations/{barcode}"] = NewGetRecommendationsBarcode(o.context, o.GetRecommendationsBarcodeHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

@@ -32,7 +32,7 @@ func NewPostRecommendations(ctx *middleware.Context, handler PostRecommendations
 /*
 	PostRecommendations swagger:route POST /recommendations/ postRecommendations
 
-Получить рекомендации по штрихкоду
+Получить рекомендации по штрихкоду с изображения
 */
 type PostRecommendations struct {
 	Context *middleware.Context

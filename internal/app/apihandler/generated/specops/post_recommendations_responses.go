@@ -17,7 +17,7 @@ import (
 const PostRecommendationsOKCode int = 200
 
 /*
-PostRecommendationsOK post recommendations o k
+PostRecommendationsOK перечисление альтернатив
 
 swagger:response postRecommendationsOK
 */

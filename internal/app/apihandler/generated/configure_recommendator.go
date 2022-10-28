@@ -41,6 +41,11 @@ func configureAPI(api *specops.RecommendatorAPI) http.Handler {
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// specops.PostRecommendationsMaxParseMemory = 32 << 20
 
+	if api.GetRecommendationsBarcodeHandler == nil {
+		api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(func(params specops.GetRecommendationsBarcodeParams) middleware.Responder {
+			return middleware.NotImplemented("operation specops.GetRecommendationsBarcode has not yet been implemented")
+		})
+	}
 	if api.PostRecommendationsHandler == nil {
 		api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(func(params specops.PostRecommendationsParams) middleware.Responder {
 			return middleware.NotImplemented("operation specops.PostRecommendations has not yet been implemented")
