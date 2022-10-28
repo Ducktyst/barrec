@@ -5,6 +5,7 @@ package generated
 import (
 	"crypto/tls"
 	"net/http"
+	"time"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -73,6 +74,8 @@ func configureTLS(tlsConfig *tls.Config) {
 // This function can be called multiple times, depending on the number of serving schemes.
 // scheme value will be set accordingly: "http", "https" or "unix".
 func configureServer(s *http.Server, scheme, addr string) {
+	s.ReadTimeout = time.Minute * 2
+	s.WriteTimeout = time.Minute * 2
 }
 
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.

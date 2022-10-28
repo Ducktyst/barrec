@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
@@ -47,6 +48,8 @@ func main() {
 
 	server.ConfigureAPI()
 	server.Port = port
+	server.ReadTimeout = time.Minute * 10
+	server.WriteTimeout = time.Minute * 10
 
 	if err := server.Serve(); err != nil {
 		log.Fatalln(err)

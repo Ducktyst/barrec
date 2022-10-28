@@ -27,9 +27,9 @@ func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops
 	}
 
 	res := make([]common.Recommendation, 0, 5)
-	res[0] = kazanexpressRecommendation
+	res = append(res, kazanexpressRecommendation)
 
-	payload := make([]*specmodels.Recommendation, 0, 1)
+	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
 		payload[i] = &specmodels.Recommendation{
 			Articul: res[i].Name,
@@ -64,9 +64,9 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 	}
 
 	res := make([]common.Recommendation, 0, 5)
-	res[0] = kazanexpressRecommendation
+	res = append(res, kazanexpressRecommendation)
 
-	payload := make([]*specmodels.Recommendation, 0, 1)
+	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
 		payload[i] = &specmodels.Recommendation{
 			Articul: res[i].Name,
