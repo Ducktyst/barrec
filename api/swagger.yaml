@@ -96,6 +96,10 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Recommendation'
+        '400':
+          description: 'ошибка'
+          schema:
+            $ref: '#/definitions/GenericError'
   /recommendations/:
     post:
       summary: Получить рекомендации по штрихкоду с изображения
@@ -114,4 +118,8 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Recommendation'
+        '400':
+          description: 'ошибка'
+          schema:
+            $ref: '#/definitions/GenericError'
   

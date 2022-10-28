@@ -60,3 +60,48 @@ func (o *PostRecommendationsOK) WriteResponse(rw http.ResponseWriter, producer r
 		panic(err) // let the recovery middleware deal with this
 	}
 }
+
+// PostRecommendationsBadRequestCode is the HTTP code returned for type PostRecommendationsBadRequest
+const PostRecommendationsBadRequestCode int = 400
+
+/*
+PostRecommendationsBadRequest ошибка
+
+swagger:response postRecommendationsBadRequest
+*/
+type PostRecommendationsBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *specmodels.GenericError `json:"body,omitempty"`
+}
+
+// NewPostRecommendationsBadRequest creates PostRecommendationsBadRequest with default headers values
+func NewPostRecommendationsBadRequest() *PostRecommendationsBadRequest {
+
+	return &PostRecommendationsBadRequest{}
+}
+
+// WithPayload adds the payload to the post recommendations bad request response
+func (o *PostRecommendationsBadRequest) WithPayload(payload *specmodels.GenericError) *PostRecommendationsBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the post recommendations bad request response
+func (o *PostRecommendationsBadRequest) SetPayload(payload *specmodels.GenericError) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *PostRecommendationsBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}

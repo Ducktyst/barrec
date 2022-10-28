@@ -60,3 +60,48 @@ func (o *GetRecommendationsBarcodeOK) WriteResponse(rw http.ResponseWriter, prod
 		panic(err) // let the recovery middleware deal with this
 	}
 }
+
+// GetRecommendationsBarcodeBadRequestCode is the HTTP code returned for type GetRecommendationsBarcodeBadRequest
+const GetRecommendationsBarcodeBadRequestCode int = 400
+
+/*
+GetRecommendationsBarcodeBadRequest ошибка
+
+swagger:response getRecommendationsBarcodeBadRequest
+*/
+type GetRecommendationsBarcodeBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *specmodels.GenericError `json:"body,omitempty"`
+}
+
+// NewGetRecommendationsBarcodeBadRequest creates GetRecommendationsBarcodeBadRequest with default headers values
+func NewGetRecommendationsBarcodeBadRequest() *GetRecommendationsBarcodeBadRequest {
+
+	return &GetRecommendationsBarcodeBadRequest{}
+}
+
+// WithPayload adds the payload to the get recommendations barcode bad request response
+func (o *GetRecommendationsBarcodeBadRequest) WithPayload(payload *specmodels.GenericError) *GetRecommendationsBarcodeBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get recommendations barcode bad request response
+func (o *GetRecommendationsBarcodeBadRequest) SetPayload(payload *specmodels.GenericError) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *GetRecommendationsBarcodeBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}

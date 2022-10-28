@@ -59,6 +59,12 @@ func init() {
                 "$ref": "#/definitions/Recommendation"
               }
             }
+          },
+          "400": {
+            "description": "ошибка",
+            "schema": {
+              "$ref": "#/definitions/GenericError"
+            }
           }
         }
       }
@@ -83,6 +89,12 @@ func init() {
               "items": {
                 "$ref": "#/definitions/Recommendation"
               }
+            }
+          },
+          "400": {
+            "description": "ошибка",
+            "schema": {
+              "$ref": "#/definitions/GenericError"
             }
           }
         }
@@ -227,6 +239,12 @@ func init() {
                 "$ref": "#/definitions/Recommendation"
               }
             }
+          },
+          "400": {
+            "description": "ошибка",
+            "schema": {
+              "$ref": "#/definitions/GenericError"
+            }
           }
         }
       }
@@ -251,6 +269,12 @@ func init() {
               "items": {
                 "$ref": "#/definitions/Recommendation"
               }
+            }
+          },
+          "400": {
+            "description": "ошибка",
+            "schema": {
+              "$ref": "#/definitions/GenericError"
             }
           }
         }

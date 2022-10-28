@@ -18,12 +18,12 @@ func NewRecommendatorService() *RecommendatorService {
 func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops.GetRecommendationsBarcodeParams) middleware.Responder {
 	articul, err := barcode.GetProductArticul(params.Barcode)
 	if err != nil {
-		return specops.NewGetRecommendationsBarcodeOK() // error
+		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
 	kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, articul)
 	if err != nil {
-		return specops.NewGetRecommendationsBarcodeOK() // error
+		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
 	res := make([]common.Recommendation, 0, 5)
@@ -45,22 +45,22 @@ func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops
 func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostRecommendationsParams) middleware.Responder {
 
 	if params.Content == nil { // possible?
-		return specops.NewGetRecommendationsBarcodeOK() // error
+		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: "file is empty"})
 	}
 
 	img_barcode, err := barcode.ScanBarCodeFile(params.Content)
 	if err != nil {
-		return specops.NewGetRecommendationsBarcodeOK() // error
+		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
 	articul, err := barcode.GetProductArticul(img_barcode)
 	if err != nil {
-		return specops.NewGetRecommendationsBarcodeOK() // error
+		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
 	kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, articul)
 	if err != nil {
-		return specops.NewGetRecommendationsBarcodeOK() // error
+		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
 	res := make([]common.Recommendation, 0, 5)
