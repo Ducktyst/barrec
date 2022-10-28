@@ -27,11 +27,7 @@ clean-generate:  conv-swag-clean # где лучше поместить очис
 
 .PHONY: clean-generate
 
-swag-clean:
-	rm -rf ./internal/app/apihandler/generated/
-	# генератор создает в generated
-
-swagger-generate: swag-clean
+swagger-generate:
 	mkdir -p ./internal/app/apihandler/generated/
 	swagger generate server --exclude-main \
 	-A recommendator -m generated/specmodels -s generated -a specops \
