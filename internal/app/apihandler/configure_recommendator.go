@@ -1,6 +1,6 @@
 // This file is safe to edit. Once it exists it will not be overwritten
 
-package generated
+package apihandler
 
 import (
 	"crypto/tls"
@@ -40,6 +40,10 @@ func configureAPI(api *specops.RecommendatorAPI) http.Handler {
 
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// specops.PostRecommendationsMaxParseMemory = 32 << 20
+
+	service := NewRecommendatorService()
+	api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(service.GetRecommendationsBarcodeHandler)
+	api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(service.PostRecommendationsHandler)
 
 	if api.GetRecommendationsBarcodeHandler == nil {
 		api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(func(params specops.GetRecommendationsBarcodeParams) middleware.Responder {

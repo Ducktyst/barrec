@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"github.com/vrischmann/envconfig"
 )
@@ -18,8 +16,6 @@ func InitConfig(prefix string) (*Config, error) {
 	if err := envconfig.InitWithPrefix(config, prefix); err != nil {
 		return nil, errors.Wrap(err, "init config failed")
 	}
-
-	fmt.Println()
 
 	return config, nil
 }

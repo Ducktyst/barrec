@@ -25,9 +25,6 @@ func main() {
 
 	api := specops.NewRecommendatorAPI(swaggerSpec)
 
-	service := apihandler.NewRecommendatorService()
-	api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(service.PostRecommendationsHandler)
-
 	server := generated.NewServer(api)
 	server.Port = port
 

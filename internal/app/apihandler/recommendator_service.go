@@ -13,9 +13,11 @@ func NewRecommendatorService() *RecommendatorService {
 	return &RecommendatorService{}
 }
 
-// func NewRecommendatoAPI() *restAPI.RecommendatorAPI {
-// 	return restAPI.NewRecommendatorAPI()
-// }
+func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops.GetRecommendationsBarcodeParams) middleware.Responder {
+	params.Barcode
+	payload := make([]*specmodels.Recommendation, 0, 0)
+	return specops.NewGetRecommendationsBarcodeOK().WithPayload(payload)
+}
 
 func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostRecommendationsParams) middleware.Responder {
 	payload := make([]*specmodels.Recommendation, 0, 0)
