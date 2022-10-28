@@ -2,7 +2,6 @@ package barcode
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -69,7 +68,6 @@ func GetProductArticul(barcode string) (string, error) {
 	if name == "" {
 		return "", ProductNotFound
 	}
-	fmt.Println(name)
 	return name, nil
 }
 

@@ -5,11 +5,13 @@ package generated
 import (
 	"crypto/tls"
 	"net/http"
+	"time"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
+	"github.com/ducktyst/bar_recomend/internal/app/apihandler"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 )
 
@@ -40,7 +42,15 @@ func configureAPI(api *specops.RecommendatorAPI) http.Handler {
 
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// specops.PostRecommendationsMaxParseMemory = 32 << 20
+	service := apihandler.NewRecommendatorService()
+	api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(service.GetRecommendationsBarcodeHandler)
+	api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(service.PostRecommendationsHandler)
 
+	if api.GetRecommendationsBarcodeHandler == nil {
+		api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(func(params specops.GetRecommendationsBarcodeParams) middleware.Responder {
+			return middleware.NotImplemented("operation specops.GetRecommendationsBarcode has not yet been implemented")
+		})
+	}
 	if api.PostRecommendationsHandler == nil {
 		api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(func(params specops.PostRecommendationsParams) middleware.Responder {
 			return middleware.NotImplemented("operation specops.PostRecommendations has not yet been implemented")
@@ -64,6 +74,8 @@ func configureTLS(tlsConfig *tls.Config) {
 // This function can be called multiple times, depending on the number of serving schemes.
 // scheme value will be set accordingly: "http", "https" or "unix".
 func configureServer(s *http.Server, scheme, addr string) {
+	s.ReadTimeout = time.Minute * 2
+	s.WriteTimeout = time.Minute * 2
 }
 
 // The middleware configuration is for the handler executors. These do not apply to the swagger.json document.

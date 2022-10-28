@@ -3,13 +3,14 @@ package barcode
 import (
 	"fmt"
 	"image/jpeg"
-	"os"
+	"io"
 
 	"github.com/bieber/barcode"
 	"github.com/sirupsen/logrus"
 )
 
-func ScanBarCodeFile(fin *os.File) (string, error) {
+// func ScanBarCodeFile(fin *os.File) (string, error) {
+func ScanBarCodeFile(fin io.ReadCloser) (string, error) {
 	defer fin.Close()
 	src, err := jpeg.Decode(fin)
 	if err != nil {

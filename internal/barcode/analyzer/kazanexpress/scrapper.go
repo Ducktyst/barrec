@@ -24,22 +24,26 @@ var host = "http://localhost"
 var port = 4445             // TODO: to env
 var browserName = "firefox" // or "chrome"
 
-// Возвращает цену с копейками
+// Возвращает цену с копейками в последних двух символах
 func ParseWithSelenium(url string) (string, int, error) {
-	logrus.Info("ParseWithSelenium")
+	logrus.Info("start ParseWithSelenium ", url)
 	caps := selenium.Capabilities{
 		"browserName": browserName,
 	}
 
-	wd, err := selenium.NewRemote(caps, fmt.Sprintf("%s:%d/wd/hub", host, port))
+	wd, err := selenium.NewRemote(caps, fmt.Sprintf("%s:%d/wd/hub", host, port)) // move to global context?
 	if err != nil {
 		return "", 0, fmt.Errorf(`selenium.NewRemote err %w`, err)
 	}
 	defer wd.Quit()
 
-	wd.SetPageLoadTimeout(20 * time.Second)
+	// wd.SetPageLoadTimeout(20 * time.Second)
+	wd.SetImplicitWaitTimeout(30 * time.Second)
 
-	// начало парсинг ссылки
+	if err := wd.Get(url); err != nil {
+		return "", 0, fmt.Errorf(`wd.Get err %w`, err)
+	}
+	// начало парсинг ссылки на карточку товара
 	productCard, err := wd.FindElement(selenium.ByCSSSelector, `[data-test-id="item__product-card"]`)
 	if err != nil {
 		return "", 0, fmt.Errorf(`get product card from [data-test-id="item__product-card"] error: %w`, err)
@@ -48,7 +52,7 @@ func ParseWithSelenium(url string) (string, int, error) {
 	if err != nil {
 		return "", 0, fmt.Errorf(`get product card url error: %w`, err)
 	}
-	// конец парсинг сслыки
+	// конец парсинг ссылки на карточку товара
 
 	// начало парсинг цены
 	lowestPriceWe, err := wd.FindElement(selenium.ByCSSSelector, `[data-test-id="text__price"]`)
@@ -60,16 +64,17 @@ func ParseWithSelenium(url string) (string, int, error) {
 		return "", 0, fmt.Errorf(`get price value error %w`, err)
 	}
 	priceSrc := strings.Split(priceVal, " ")
-	if len(priceSrc) < 1 {
+	if len(priceSrc) < 1 || len(priceSrc[0]) == 0 {
 		return "", 0, fmt.Errorf(`recognize price value %w`, err)
 	}
-	price, err := strconv.Atoi(priceSrc[0])
+	priceFloatSrc := strings.ReplaceAll(priceSrc[0], ",", ".")
+	price, err := strconv.ParseFloat(priceFloatSrc, 64)
 	if err != nil {
 		return "", 0, fmt.Errorf(`recognize price value %w`, err)
 	}
 	// конец парсинг цены
-
-	return detailUrl, price, nil
+	logrus.Info("end ParseWithSelenium ", url)
+	return detailUrl, int(price * 100), nil // проверить конвертацию, 100,90 => 10090 , 100,909 => 10090, а не 10091
 }
 
 // примеры безинтерфейсного браузера https://github.com/chromedp/examples
