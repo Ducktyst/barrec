@@ -1,18 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"time"
 
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
+	"golang.ngrok.com/ngrok"
+	"golang.ngrok.com/ngrok/config"
 
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 )
 
-const port = 8089
+const port = 8091
 
 func main() {
 
@@ -51,6 +54,19 @@ func main() {
 	server.ReadTimeout = time.Minute * 10
 	server.WriteTimeout = time.Minute * 10
 
+	// ngrok
+	tun, err := ngrok.StartTunnel(context.Background(),
+		config.HTTPEndpoint(),
+		ngrok.WithAuthtokenFromEnv(),
+	)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+
+	log.Println("tunnel created:", tun.URL())
+
+	// serve
 	if err := server.Serve(); err != nil {
 		log.Fatalln(err)
 	}

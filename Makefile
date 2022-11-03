@@ -1,7 +1,14 @@
 all: stop-driver driver run
 
 run: driver
+	env $(cat .env) go run cmd/recommendator-server/main.go
+	
+ngrok:
+	ngrok http 8091
+	
+run-clean: 
 	go run cmd/recommendator-server/main.go
+
 
 # https://github.com/SeleniumHQ/docker-selenium
 driver: stop-driver

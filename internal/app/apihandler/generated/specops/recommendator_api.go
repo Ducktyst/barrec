@@ -43,6 +43,9 @@ func NewRecommendatorAPI(spec *loads.Document) *RecommendatorAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		GetPingHandler: GetPingHandlerFunc(func(params GetPingParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetPing has not yet been implemented")
+		}),
 		GetRecommendationsBarcodeHandler: GetRecommendationsBarcodeHandlerFunc(func(params GetRecommendationsBarcodeParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetRecommendationsBarcode has not yet been implemented")
 		}),
@@ -88,6 +91,8 @@ type RecommendatorAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// GetPingHandler sets the operation handler for the get ping operation
+	GetPingHandler GetPingHandler
 	// GetRecommendationsBarcodeHandler sets the operation handler for the get recommendations barcode operation
 	GetRecommendationsBarcodeHandler GetRecommendationsBarcodeHandler
 	// PostRecommendationsHandler sets the operation handler for the post recommendations operation
@@ -172,6 +177,9 @@ func (o *RecommendatorAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.GetPingHandler == nil {
+		unregistered = append(unregistered, "GetPingHandler")
+	}
 	if o.GetRecommendationsBarcodeHandler == nil {
 		unregistered = append(unregistered, "GetRecommendationsBarcodeHandler")
 	}
@@ -268,6 +276,10 @@ func (o *RecommendatorAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/ping"] = NewGetPing(o.context, o.GetPingHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

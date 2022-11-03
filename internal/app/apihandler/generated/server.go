@@ -200,7 +200,6 @@ func (s *Server) Serve() (err error) {
 		httpServer.MaxHeaderBytes = int(s.MaxHeaderSize)
 		httpServer.ReadTimeout = s.ReadTimeout
 		httpServer.WriteTimeout = s.WriteTimeout
-		fmt.Println("httpServer.ReadTimeout = ", s.ReadTimeout, "httpServer.WriteTimeout = ", s.WriteTimeout)
 		httpServer.SetKeepAlivesEnabled(int64(s.KeepAlive) > 0)
 		if s.ListenLimit > 0 {
 			s.httpServerL = netutil.LimitListener(s.httpServerL, s.ListenLimit)

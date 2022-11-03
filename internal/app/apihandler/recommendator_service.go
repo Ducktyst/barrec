@@ -1,6 +1,8 @@
 package apihandler
 
 import (
+	"fmt"
+
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specmodels"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 	"github.com/ducktyst/bar_recomend/internal/barcode"
@@ -16,6 +18,8 @@ func NewRecommendatorService() *RecommendatorService {
 }
 
 func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops.GetRecommendationsBarcodeParams) middleware.Responder {
+	fmt.Println("GetRecommendationsBarcodeHandler", params.Barcode)
+
 	articul, err := barcode.GetProductArticul(params.Barcode)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
@@ -76,4 +80,8 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 		}
 	}
 	return specops.NewPostRecommendationsOK().WithPayload(payload)
+}
+
+func (srv *RecommendatorService) GetPingHandler(params specops.GetPingParams) middleware.Responder {
+	return specops.NewGetPingOK().WithPayload(&specmodels.Pong{Text: "service done!"})
 }

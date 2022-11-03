@@ -11,6 +11,11 @@ consumes:
 produces:
   - application/json
 definitions:
+  Pong:
+    type: object
+    properties:
+      text:
+        type: string
   Recommendation:
     type: object
     properties:
@@ -122,4 +127,13 @@ paths:
           description: 'ошибка'
           schema:
             $ref: '#/definitions/GenericError'
-  
+  /ping:
+    get:
+      summary: Проверка работоспособности сервиса
+      consumes:
+        - application/json
+      responses:
+        '200':
+          description: 'успешный ответ'
+          schema:
+            $ref: '#/definitions/Pong'

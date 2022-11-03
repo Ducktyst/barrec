@@ -45,6 +45,7 @@ func configureAPI(api *specops.RecommendatorAPI) http.Handler {
 	service := apihandler.NewRecommendatorService()
 	api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(service.GetRecommendationsBarcodeHandler)
 	api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(service.PostRecommendationsHandler)
+	api.GetPingHandler = specops.GetPingHandlerFunc(service.GetPingHandler)
 
 	if api.GetRecommendationsBarcodeHandler == nil {
 		api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(func(params specops.GetRecommendationsBarcodeParams) middleware.Responder {

@@ -35,6 +35,22 @@ func init() {
   },
   "basePath": "/api",
   "paths": {
+    "/ping": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "summary": "Проверка работоспособности сервиса",
+        "responses": {
+          "200": {
+            "description": "успешный ответ",
+            "schema": {
+              "$ref": "#/definitions/Pong"
+            }
+          }
+        }
+      }
+    },
     "/recommendations/": {
       "post": {
         "consumes": [
@@ -152,6 +168,14 @@ func init() {
           "type": "string",
           "x-omitempty": false,
           "readOnly": true
+        }
+      }
+    },
+    "Pong": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
         }
       }
     },
@@ -215,6 +239,22 @@ func init() {
   },
   "basePath": "/api",
   "paths": {
+    "/ping": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "summary": "Проверка работоспособности сервиса",
+        "responses": {
+          "200": {
+            "description": "успешный ответ",
+            "schema": {
+              "$ref": "#/definitions/Pong"
+            }
+          }
+        }
+      }
+    },
     "/recommendations/": {
       "post": {
         "consumes": [
@@ -332,6 +372,14 @@ func init() {
           "type": "string",
           "x-omitempty": false,
           "readOnly": true
+        }
+      }
+    },
+    "Pong": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
         }
       }
     },

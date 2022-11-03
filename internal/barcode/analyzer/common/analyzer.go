@@ -3,10 +3,13 @@ package common
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net/url"
 	"text/template"
+	"time"
 
 	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/kazanexpress"
+	"github.com/tebeka/selenium"
 )
 
 type site uint
@@ -19,6 +22,10 @@ const (
 	Ozon         = iota
 )
 
+var host = "http://localhost"
+var port = 4445             // TODO: to env
+var browserName = "firefox" // or "chrome"
+
 type Recommendation struct {
 	Name  string
 	Price int
@@ -27,10 +34,20 @@ type Recommendation struct {
 
 // getPriceFromCitilink
 func GetPriceFrom(site site, articul string) (Recommendation, error) {
+	caps := selenium.Capabilities{
+		"browserName": browserName,
+	}
+	wd, err := selenium.NewRemote(caps, fmt.Sprintf("%s:%d/wd/hub", host, port)) // move to global context?
+	if err != nil {
+		return Recommendation{}, err
+	}
+	defer wd.Quit()
+
 	switch site {
 	case KazanExpress:
+		wd.SetImplicitWaitTimeout(30 * time.Second)
 		url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
-		url, price, err := kazanexpress.ParseWithSelenium(url)
+		url, price, err := kazanexpress.ParseWithSelenium(wd, url)
 
 		return Recommendation{
 			Name:  articul,
