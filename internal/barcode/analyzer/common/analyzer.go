@@ -20,6 +20,8 @@ const (
 	YandexMarket = iota
 	KazanExpress = iota
 	Ozon         = iota
+
+	KazanExpressName = "KazanExpress"
 )
 
 var host = "http://localhost"
@@ -27,9 +29,10 @@ var port = 4445             // TODO: to env
 var browserName = "firefox" // or "chrome"
 
 type Recommendation struct {
-	Name  string
-	Price int
-	Url   string
+	Name     string
+	ShopName string
+	Price    int
+	Url      string
 }
 
 // getPriceFromCitilink
@@ -50,9 +53,10 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 		url, price, err := kazanexpress.ParseWithSelenium(wd, url)
 
 		return Recommendation{
-			Name:  articul,
-			Price: price,
-			Url:   url}, err
+			Name:     articul,
+			ShopName: KazanExpressName,
+			Price:    price,
+			Url:      url}, err
 	}
 	return Recommendation{}, errors.New("unknown error")
 }

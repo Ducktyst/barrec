@@ -192,6 +192,9 @@ func init() {
           "type": "number",
           "format": "float64"
         },
+        "shopName": {
+          "type": "string"
+        },
         "url": {
           "type": "string"
         }
@@ -395,6 +398,9 @@ func init() {
         "price": {
           "type": "number",
           "format": "float64"
+        },
+        "shopName": {
+          "type": "string"
         },
         "url": {
           "type": "string"

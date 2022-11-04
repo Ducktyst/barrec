@@ -36,10 +36,11 @@ func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
 		payload[i] = &specmodels.Recommendation{
-			Articul: res[i].Name,
-			Barcode: params.Barcode,
-			Price:   float64(res[i].Price),
-			URL:     res[i].Url,
+			Articul:  res[i].Name,
+			ShopName: res[i].ShopName,
+			Barcode:  params.Barcode,
+			Price:    float64(res[i].Price),
+			URL:      res[i].Url,
 		}
 	}
 
@@ -73,10 +74,11 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
 		payload[i] = &specmodels.Recommendation{
-			Articul: res[i].Name,
-			Barcode: img_barcode,
-			Price:   float64(res[i].Price),
-			URL:     res[i].Url,
+			Articul:  res[i].Name,
+			ShopName: res[i].ShopName,
+			Barcode:  img_barcode,
+			Price:    float64(res[i].Price),
+			URL:      res[i].Url,
 		}
 	}
 	return specops.NewPostRecommendationsOK().WithPayload(payload)

@@ -21,6 +21,8 @@ definitions:
     properties:
       articul:
         type: string
+      shopName:
+        type: string
       price:
         type: number
         format: float64

@@ -26,6 +26,9 @@ type Recommendation struct {
 	// price
 	Price float64 `json:"price,omitempty"`
 
+	// shop name
+	ShopName string `json:"shopName,omitempty"`
+
 	// url
 	URL string `json:"url,omitempty"`
 }
