@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/kazanexpress"
+	"github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 )
 
@@ -50,7 +51,9 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 	case KazanExpress:
 		wd.SetImplicitWaitTimeout(30 * time.Second)
 		url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
+		logrus.Info(time.Now().Format(time.RFC3339), "start ParseWithSelenium ", articul)
 		url, price, err := kazanexpress.ParseWithSelenium(wd, url)
+		logrus.Info(time.Now().Format(time.RFC3339), "end ParseWithSelenium ", articul, err)
 
 		return Recommendation{
 			Name:     articul,

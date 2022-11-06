@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/tebeka/selenium"
 	// https://github.com/SeleniumHQ/docker-selenium
 )
@@ -21,7 +19,6 @@ var OZON_SEARCH_URL = "https://www.ozon.ru/search/?from_global=true&text={{.sear
 
 // Возвращает цену с копейками в последних двух символах
 func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
-	logrus.Info("start ParseWithSelenium ", url)
 	if err := wd.Get(url); err != nil {
 		return "", 0, fmt.Errorf(`wd.Get err %w`, err)
 	}
@@ -55,7 +52,6 @@ func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
 		return "", 0, fmt.Errorf(`recognize price value %w`, err)
 	}
 	// конец парсинг цены
-	logrus.Info("end ParseWithSelenium ", url)
 	return KAZAN_EXPRESS_HOST + detailUrl, int(price * 100), nil // проверить конвертацию, 100,90 => 10090 , 100,909 => 10090, а не 10091
 }
 

@@ -2,7 +2,7 @@ package barcode
 
 import (
 	"fmt"
-	"image/jpeg"
+	"image/png"
 	"io"
 
 	"github.com/bieber/barcode"
@@ -12,7 +12,7 @@ import (
 // func ScanBarCodeFile(fin *os.File) (string, error) {
 func ScanBarCodeFile(fin io.ReadCloser) (string, error) {
 	defer fin.Close()
-	src, err := jpeg.Decode(fin)
+	src, err := png.Decode(fin)
 	if err != nil {
 		logrus.Error(err)
 		panic(err)

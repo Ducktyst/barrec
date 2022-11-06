@@ -2,12 +2,14 @@ package apihandler
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specmodels"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 	"github.com/ducktyst/bar_recomend/internal/barcode"
 	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/common"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/sirupsen/logrus"
 )
 
 type RecommendatorService struct {
@@ -57,7 +59,7 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
-
+	logrus.Info(time.Now().Format(time.RFC3339), "PostRecommendationsHandler ", img_barcode, err)
 	articul, err := barcode.GetProductArticul(img_barcode)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
