@@ -50,6 +50,7 @@ func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops
 }
 
 func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostRecommendationsParams) middleware.Responder {
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler start")
 
 	if params.Content == nil { // possible?
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: "file is empty"})
@@ -59,7 +60,8 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
-	logrus.Info(time.Now().Format(time.RFC3339), "PostRecommendationsHandler ", img_barcode, err)
+
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler ", img_barcode, err)
 	articul, err := barcode.GetProductArticul(img_barcode)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
