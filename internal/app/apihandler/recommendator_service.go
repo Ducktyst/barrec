@@ -6,7 +6,6 @@ import (
 
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specmodels"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
-	"github.com/ducktyst/bar_recomend/internal/barcode"
 	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/common"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/sirupsen/logrus"
@@ -22,18 +21,15 @@ func NewRecommendatorService() *RecommendatorService {
 func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops.GetRecommendationsBarcodeParams) middleware.Responder {
 	fmt.Println("GetRecommendationsBarcodeHandler", params.Barcode)
 
-	articul, err := barcode.GetProductArticul(params.Barcode)
+	articul, err := common.GetProductArticul(params.Barcode)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
-	kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, articul)
+	res, err := findByArticul(articul)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
-
-	res := make([]common.Recommendation, 0, 5)
-	res = append(res, kazanexpressRecommendation)
 
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
@@ -56,24 +52,21 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: "file is empty"})
 	}
 
-	img_barcode, err := barcode.ScanBarCodeFile(params.Content)
+	img_barcode, err := common.ScanBarCodeFile(params.Content)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
 	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler ", img_barcode, err)
-	articul, err := barcode.GetProductArticul(img_barcode)
+	articul, err := common.GetProductArticul(img_barcode)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
-	kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, articul)
+	res, err := findByArticul(articul)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
-
-	res := make([]common.Recommendation, 0, 5)
-	res = append(res, kazanexpressRecommendation)
 
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
@@ -90,4 +83,20 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 
 func (srv *RecommendatorService) GetPingHandler(params specops.GetPingParams) middleware.Responder {
 	return specops.NewGetPingOK().WithPayload(&specmodels.Pong{Text: "service done!"})
+}
+
+func findByArticul(articul string) ([]common.Recommendation, error) {
+	// kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, articul)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	ymRecommendation, err := common.GetPriceFrom(common.YandexMarket, articul)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]common.Recommendation, 2)
+	// res[0] = kazanexpressRecommendation
+	res[1] = ymRecommendation
+	return res, err
 }

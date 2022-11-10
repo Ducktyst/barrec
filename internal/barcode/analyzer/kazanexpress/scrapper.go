@@ -15,8 +15,6 @@ var (
 )
 var SEARCH_URL = KAZAN_SEARCH_URL
 
-var OZON_SEARCH_URL = "https://www.ozon.ru/search/?from_global=true&text={{.search_text}}"
-
 // Возвращает цену с копейками в последних двух символах
 func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
 	if err := wd.Get(url); err != nil {

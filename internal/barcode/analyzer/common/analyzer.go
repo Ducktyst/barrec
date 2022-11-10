@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/kazanexpress"
+	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/ym"
 	"github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 )
@@ -22,7 +23,8 @@ const (
 	KazanExpress = iota
 	Ozon         = iota
 
-	KazanExpressName = "KazanExpress"
+	KazanExpressName = "Kazan Express"
+	YandexMarketName = "Yandex Market"
 )
 
 var host = "http://localhost"
@@ -46,21 +48,36 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 		return Recommendation{}, err
 	}
 	defer wd.Quit()
+	wd.SetImplicitWaitTimeout(30 * time.Second)
 
+	logrus.Infof("%v %s %s %s", time.Now().Format(time.RFC3339), "start ParseWithSelenium", KazanExpressName, articul)
+	defer logrus.Infof("%v %s %s %s", time.Now().Format(time.RFC3339), "end ParseWithSelenium", KazanExpressName, articul)
 	switch site {
 	case KazanExpress:
-		wd.SetImplicitWaitTimeout(30 * time.Second)
-		url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
-		logrus.Info(time.Now().Format(time.RFC3339), "start ParseWithSelenium ", articul)
-		url, price, err := kazanexpress.ParseWithSelenium(wd, url)
-		logrus.Info(time.Now().Format(time.RFC3339), "end ParseWithSelenium ", articul, err)
+		{
+			url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
+			url, price, err := kazanexpress.ParseWithSelenium(wd, url) // TODO: result as struct
+			return Recommendation{
+				Name:     articul,
+				ShopName: KazanExpressName,
+				Price:    price,
+				Url:      url,
+			}, err
+		}
 
-		return Recommendation{
-			Name:     articul,
-			ShopName: KazanExpressName,
-			Price:    price,
-			Url:      url}, err
+	case YandexMarket:
+		{
+			url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
+			url, price, err := ym.ParseWithSelenium(wd, url)
+			return Recommendation{
+				Name:     articul,
+				ShopName: YandexMarketName,
+				Price:    price,
+				Url:      url,
+			}, err
+		}
 	}
+
 	return Recommendation{}, errors.New("unknown error")
 }
 

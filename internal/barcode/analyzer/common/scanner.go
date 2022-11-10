@@ -1,9 +1,10 @@
-package barcode
+package common
 
 import (
 	"fmt"
 	"image/png"
 	"io"
+	"os"
 	"time"
 
 	"github.com/bieber/barcode"
@@ -17,6 +18,17 @@ func ScanBarCodeFile(fin io.ReadCloser) (string, error) {
 	if err != nil {
 		logrus.Errorf("png.Decode(fin) err: %v", err)
 		return "", fmt.Errorf("cant decode image")
+	}
+
+	_ = os.Remove("img.jpg")
+	f, err := os.Create("img.jpg")
+	if err != nil {
+		logrus.Errorf(`os.Create("img.jpg"): %v`, err)
+		// panic(err)
+	}
+	defer f.Close()
+	if err = png.Encode(f, src); err != nil {
+		logrus.Errorf("failed to encode: %v", err)
 	}
 
 	img := barcode.NewImage(src)

@@ -2,14 +2,12 @@ package ym
 
 import (
 	"fmt"
-	"time"
 
-	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/common"
-	"github.com/gocolly/colly"
-	"github.com/gocolly/colly/extensions"
+	"github.com/tebeka/selenium"
 )
 
 const (
+	YM_HOST       = "https://market.yandex.ru/"
 	YM_SEARCH_URL = "https://market.yandex.ru/search?cvredirect=2&text={{.search_text}}"
 	YM_LIST_URL   = "https://market.yandex.ru/catalog--produkty/54434/list?srnum=1002&was_redir=1&rt=9&rs=eJwzEg1grGLh-HGSdRYj14X9F7ZebADiNgBj9QrL&text={{.search_text}}&hid=91307&how=aprice&allowCollapsing=1&local-offers-first=0"
 )
@@ -26,71 +24,41 @@ type product struct {
 	Price       price
 }
 
-func Scrap() {
-	return
-	// var header string
+// Возвращает цену с копейками в последних двух символах
+func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
+	if err := wd.Get(url); err != nil {
+		return "", 0, fmt.Errorf(`wd.Get err %w`, err)
+	}
+	// начало парсинг ссылки на карточку товара
+	productCard, err := wd.FindElement(selenium.ByCSSSelector, `[data-test-id="item__product-card"]`)
+	if err != nil {
+		return "", 0, fmt.Errorf(`get product card from [data-test-id="item__product-card"] error: %w`, err)
+	}
+	detailUrl, err := productCard.GetAttribute("href")
+	if err != nil {
+		return "", 0, fmt.Errorf(`get product card url error: %w`, err)
+	}
+	// конец парсинг ссылки на карточку товара
 
-	c := colly.NewCollector(
-		colly.AllowedDomains("market.yandex.ru"),
-	)
-	extensions.RandomUserAgent(c)
-	extensions.Referer(c)
-
-	c.IgnoreRobotsTxt = true
-	c.SetRequestTimeout(20 * time.Second)
-
-	c.OnHTML("body", func(h *colly.HTMLElement) {
-		fmt.Println("onHTML body")
-		fmt.Println(h.Text)
-	})
-
-	c.OnHTML("main", func(h *colly.HTMLElement) {
-		//data-auto="mainPrice"
-		fmt.Println("onHTML main")
-		fmt.Println(h.Text)
-		fmt.Println(h.DOM.Nodes)
-		// 	fmt.Println(h.DOM.Children().Get(0))
-	})
-
-	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Request to url", r.URL.String())
-	})
-
-	url := common.GenerateSearchUrl(YM_LIST_URL, "полотенце")
-	c.Visit(url)
-	/*
-		Скажите, что вы не робот. Recaptcha
-	*/
+	// начало парсинг цены
+	// lowestPriceWe, err := wd.FindElement(selenium.ByCSSSelector, `[data-test-id="text__price"]`)
+	// if err != nil {
+	// 	return "", 0, fmt.Errorf(`get text from [data-test-id="text__price"] err %w`, err)
+	// }
+	// priceVal, err := lowestPriceWe.Text()
+	// if err != nil {
+	// 	return "", 0, fmt.Errorf(`get price value error %w`, err)
+	// }
+	// priceSrc := strings.Split(priceVal, " ")
+	// if len(priceSrc) < 1 || len(priceSrc[0]) == 0 {
+	// 	return "", 0, fmt.Errorf(`recognize price value %w`, err)
+	// }
+	// priceFloatSrc := strings.ReplaceAll(priceSrc[0], ",", ".")
+	// price, err := strconv.ParseFloat(priceFloatSrc, 64)
+	// if err != nil {
+	// 	return "", 0, fmt.Errorf(`recognize price value %w`, err)
+	// }
+	var price = 0
+	// конец парсинг цены
+	return YM_HOST + detailUrl, int(price * 100), nil // проверить конвертацию, 100,90 => 10090 , 100,909 => 10090, а не 10091
 }
-
-// func ScrapYM() {
-// 	// Request the HTML page.
-// 	url := common.GenerateSearchUrl(YM_LIST_URL, "полотенце") // TODO: search_text as func param
-
-// 	res, err := http.Get(url)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	defer res.Body.Close()
-// 	if res.StatusCode != 200 {
-// 		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
-// 	}
-
-// 	// Load the HTML document
-// 	doc, err := goquery.NewDocumentFromReader(res.Body)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	fmt.Println(doc)
-// 	doc.Find("body").Each(func(i int, s *goquery.Selection) {
-// 		fmt.Println(s.Text())
-// 	})
-
-// 	// Find the review items
-// 	doc.Find("#main").Each(func(i int, s *goquery.Selection) {
-// 		fmt.Println("mains")
-// 		// For each item found, get the title
-// 		title := s.Find("div").Text()
-// 		fmt.Printf("div %d: %s\n", i, title)
-// 	})
-// }
