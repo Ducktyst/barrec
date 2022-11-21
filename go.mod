@@ -15,11 +15,12 @@ require (
 	github.com/go-openapi/validate v0.22.0
 	github.com/gocolly/colly v1.2.0
 	github.com/jessevdk/go-flags v1.5.0
+	github.com/jmoiron/sqlx v1.3.5
+	github.com/lib/pq v1.10.7
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tebeka/selenium v0.9.9
 	github.com/vrischmann/envconfig v1.3.0
-	golang.ngrok.com/ngrok v0.0.0-20221031223959-31c217206fe1
 	golang.org/x/net v0.0.0-20221004154528-8021a29435af
 )
 
@@ -34,17 +35,13 @@ require (
 	github.com/go-openapi/analysis v0.21.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
-	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/inconshreveable/log15 v0.0.0-20201112154412-8562bdadbbac // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.12 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect

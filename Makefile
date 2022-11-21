@@ -9,7 +9,6 @@ ngrok:
 run-clean: 
 	go run cmd/recommendator-server/main.go
 
-
 # https://github.com/SeleniumHQ/docker-selenium
 driver: stop-driver
 	docker run -d -p 4445:4444  -p 7900:7900 --name=selen --shm-size="2g" selenium/standalone-firefox:4.5.2-20221021
@@ -20,14 +19,17 @@ driver-window: stop-driver
 stop-driver:
 	@docker rm -f selen
 
-goose-sqlite:
-	goose -dir deployments/migrations sqlite3 ./foo.db create init sql
+# goose-sqlite-init:
+# 	goose -dir deployments/migrations sqlite3 ./foo.db create init sql
+
+# goose-sqlite-up:
+# 	goose -dir deployments/migrations sqlite3 ./foo.db up
+
+goose-new:
+	goose -dir deployments/migrations postgres "user=aleksej password=postgres dbname=recommendator sslmode=disable" sql create
 
 goose-up:
-	goose -dir deployments/migrations sqlite3 ./foo.db up
-
-# goose postgres "user=pricescan password=postgres dbname=postgres sslmode=disable" status
-
+	goose -dir deployments/migrations postgres "user=aleksej password=postgres dbname=recommendator sslmode=disable" up
 
 clean-generate:  conv-swag-clean # где лучше поместить очистку устаревших файлов?
 	rm -rf ./internal/app/apihandler/generate

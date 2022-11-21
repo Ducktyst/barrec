@@ -1,25 +1,38 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE shops (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name TEXT,
     go_search_template TEXT
 );
+
 CREATE TABLE products (
-    id INTEGER PRIMARY KEY,
-    barcode VARCHAR(255),
-    go_search_template TEXT
-);
-CREATE TABLE prices (
+    id SERIAL PRIMARY KEY,
+    articul VARCHAR(200),
+    -- short_name VARCHAR(200),
+--    barcode VARCHAR(255),
+    -- go_search_template TEXT,
+    url VARCHAR(255),
     shop_id INTEGER,
+    price INTEGER,
+    -- TODO: updated_at 
+     CONSTRAINT fk_products_shops
+      FOREIGN KEY (shop_id) 
+	  REFERENCES shops(id)
+);
+
+CREATE TABLE barcode_products (
     barcode VARCHAR(255),
-    price_min INTEGER
+    product_id INTEGER,
+    CONSTRAINT fk_barcode_products_products
+      FOREIGN KEY (product_id) 
+	  REFERENCES products(id)
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE prices;
 DROP TABLE shops;
 DROP TABLE products;
+DROP TABLE barcode_products;
 -- +goose StatementEnd

@@ -4,15 +4,26 @@ package generated
 
 import (
 	"crypto/tls"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
+	_ "github.com/lib/pq"
+)
+
+var (
+	host   = "localhost"
+	port   = 5432
+	user   = "aleksej"
+	dbname = "recommendator"
 )
 
 //go:generate swagger generate server --target ../../apihandler --name Recommendator --spec ../../../../api/swagger.yaml --api-package specops --model-package generated/specmodels --server-package generated --principal interface{} --exclude-main
@@ -42,7 +53,24 @@ func configureAPI(api *specops.RecommendatorAPI) http.Handler {
 
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// specops.PostRecommendationsMaxParseMemory = 32 << 20
-	service := apihandler.NewRecommendatorService()
+
+	// init db start
+	connStr := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", host, port, user, dbname)
+	db, err := sqlx.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	// init db end
+
+	service := apihandler.NewRecommendatorService(db)
+
+	// configure handlers
 	api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(service.GetRecommendationsBarcodeHandler)
 	api.PostRecommendationsHandler = specops.PostRecommendationsHandlerFunc(service.PostRecommendationsHandler)
 	api.GetPingHandler = specops.GetPingHandlerFunc(service.GetPingHandler)

@@ -50,8 +50,8 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 	defer wd.Quit()
 	wd.SetImplicitWaitTimeout(30 * time.Second)
 
-	logrus.Infof("%v %s %s %s", time.Now().Format(time.RFC3339), "start ParseWithSelenium", KazanExpressName, articul)
-	defer logrus.Infof("%v %s %s %s", time.Now().Format(time.RFC3339), "end ParseWithSelenium", KazanExpressName, articul)
+	logrus.Infof("%v %s %s %s", time.Now().Format(time.RFC3339), "start ParseWithSelenium", site, articul)
+	defer logrus.Infof("%v %s %s %s", time.Now().Format(time.RFC3339), "end ParseWithSelenium", site, articul)
 	switch site {
 	case KazanExpress:
 		{
@@ -64,10 +64,9 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 				Url:      url,
 			}, err
 		}
-
 	case YandexMarket:
 		{
-			url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
+			url := GenerateSearchUrl(ym.SEARCH_URL, articul)
 			url, price, err := ym.ParseWithSelenium(wd, url)
 			return Recommendation{
 				Name:     articul,
