@@ -31,7 +31,7 @@ type product struct {
 // Возвращает цену с копейками в последних двух символах
 func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
 	if err := wd.Get(url); err != nil {
-		return "", 0, fmt.Errorf(`wd.Get err %w`, err)
+		return "", 0, fmt.Errorf(`ym: wd.Get err %w`, err)
 	}
 	logrus.Info("url ", url)
 	// начало парсинг ссылки на карточку товара
@@ -43,11 +43,11 @@ func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
 	// или по Xpath
 	productCard, err := wd.FindElement(selenium.ByCSSSelector, `[data-test-id="item__product-card"]`)
 	if err != nil {
-		return "", 0, fmt.Errorf(`get product card from [data-test-id="item__product-card"] error: %w`, err)
+		return "", 0, fmt.Errorf(`ym: get product card from [data-test-id="item__product-card"] error: %w`, err)
 	}
 	detailUrl, err := productCard.GetAttribute("href")
 	if err != nil {
-		return "", 0, fmt.Errorf(`get product card url error: %w`, err)
+		return "", 0, fmt.Errorf(`ym: get product card url error: %w`, err)
 	}
 	// конец парсинг ссылки на карточку товара
 
@@ -61,20 +61,20 @@ func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
 	*/
 	lowestPriceWe, err := wd.FindElement(selenium.ByCSSSelector, `[data-test-id="text__price"]`)
 	if err != nil {
-		return "", 0, fmt.Errorf(`get text from [data-test-id="text__price"] err %w`, err)
+		return "", 0, fmt.Errorf(`ym: get text from [data-test-id="text__price"] err %w`, err)
 	}
 	priceVal, err := lowestPriceWe.Text()
 	if err != nil {
-		return "", 0, fmt.Errorf(`get price value error %w`, err)
+		return "", 0, fmt.Errorf(`ym: get price value error %w`, err)
 	}
 	priceSrc := strings.Split(priceVal, " ")
 	if len(priceSrc) < 1 || len(priceSrc[0]) == 0 {
-		return "", 0, fmt.Errorf(`recognize price value %w`, err)
+		return "", 0, fmt.Errorf(`ym: ecognize price value %w`, err)
 	}
 	priceFloatSrc := strings.ReplaceAll(priceSrc[0], ",", ".")
 	price, err := strconv.ParseFloat(priceFloatSrc, 64)
 	if err != nil {
-		return "", 0, fmt.Errorf(`recognize price value %w`, err)
+		return "", 0, fmt.Errorf(`ym: recognize price value %w`, err)
 	}
 
 	// конец парсинг цены
