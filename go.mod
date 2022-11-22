@@ -4,6 +4,9 @@ go 1.18
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
+	github.com/agext/levenshtein v1.2.3
+	github.com/agnivade/levenshtein v1.1.1
+	github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0
 	github.com/bieber/barcode v0.0.0-20220513044159-210c746086f7
 	github.com/bunsenapp/go-selenium v0.1.0
 	github.com/go-openapi/errors v0.20.2
