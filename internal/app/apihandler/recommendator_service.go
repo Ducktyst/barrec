@@ -83,12 +83,12 @@ func (srv *RecommendatorService) findByBarcode(barcode string) ([]common.Recomme
 		return nil, err
 	}
 
-	kazanexpressRecommendation := common.Recommendation{
-		Name:     "товар 1",
-		ShopName: common.KazanExpressName,
-		Price:    5590,
-		Url:      "https://kazanexpress.ru",
-	}
+	// kazanexpressRecommendation := common.Recommendation{
+	// 	Name:     "товар 1",
+	// 	ShopName: common.KazanExpressName,
+	// 	Price:    5590,
+	// 	Url:      "https://kazanexpress.ru",
+	// }
 	kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, articul)
 	if err != nil {
 		return nil, err
