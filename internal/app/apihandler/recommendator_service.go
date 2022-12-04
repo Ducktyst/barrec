@@ -135,7 +135,7 @@ func (srv *RecommendatorService) findByBarcode(barcode string) ([]common.Recomme
 	}
 
 	type product struct {
-		ID       int    `db:"product_id`
+		ID       int    `db:"product_id"`
 		Barcode  string `db:"barcode"`
 		Articul  string `db:"articul"`
 		ShopName string `db:"shop_name"`
@@ -181,22 +181,22 @@ func (srv *RecommendatorService) levensteinRecommendations(barcode string) ([]co
 
 	// select all
 	type product struct {
-		ID int `db:"product_id`
+		ID int `db:"product_id"`
 		// Barcode  string `db:"barcode"`
 		Articul  string `db:"articul"`
 		ShopName string `db:"shop_name"`
 		Price    int    `db:"barcode"`
 		URL      string `db:"url"`
 	}
-	selectQ := `select p.id as product_id, p.articul, s.name, p.url
+	selectQ := `select p.id as product_id, p.articul, s.name shop_name, p.url
 from barcode_products bp 
 inner join products p on (bp.product_id = p.id)
 inner join shops s on (p.shop_id = s.id)
-where bp.barcode = ?`
+where bp.barcode = $1`
 	// selectQ := `select bd.barcode, p.url, from barcode_products bp inner join products p on (product_id = id) inner join shops s on (shop_id = id)`
 	var products = make([]product, 0)
 	if err = srv.db.Select(&products, selectQ, barcode); err != nil {
-		logrus.Errorf("srv.db.Select products error = %s", err)
+		logrus.Errorf("srv.db.Select products barcode = %s error = %s", barcode, err)
 		return nil, err
 	}
 	// calculate levenstein

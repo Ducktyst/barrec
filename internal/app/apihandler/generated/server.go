@@ -25,6 +25,7 @@ import (
 	"golang.org/x/net/netutil"
 
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
+	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -52,9 +53,16 @@ func NewServer(api *specops.RecommendatorAPI) *Server {
 }
 
 // ConfigureAPI configures the API and handlers.
-func (s *Server) ConfigureAPI() {
+func (s *Server) ConfigureAPI(db *sqlx.DB) {
 	if s.api != nil {
-		s.handler = configureAPI(s.api)
+		s.handler = configureAPI(s.api, db)
+	}
+}
+
+// ConfigureDB configures the API and handlers.
+func (s *Server) ConfigureDB(db *sqlx.DB) {
+	if s.api != nil {
+		s.handler = configureAPI(s.api, db)
 	}
 }
 
@@ -124,7 +132,7 @@ func (s *Server) Fatalf(f string, args ...interface{}) {
 }
 
 // SetAPI configures the server with the specified API. Needs to be called before Serve
-func (s *Server) SetAPI(api *specops.RecommendatorAPI) {
+func (s *Server) SetAPI(api *specops.RecommendatorAPI, db *sqlx.DB) {
 	if api == nil {
 		s.api = nil
 		s.handler = nil
@@ -132,7 +140,7 @@ func (s *Server) SetAPI(api *specops.RecommendatorAPI) {
 	}
 
 	s.api = api
-	s.handler = configureAPI(api)
+	s.handler = configureAPI(api, db)
 }
 
 func (s *Server) hasScheme(scheme string) bool {

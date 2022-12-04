@@ -73,7 +73,8 @@ func main() {
 	}
 	// init db end
 
-	server.ConfigureAPI()
+	server.ConfigureAPI(Db)
+	// server.ConfigureDB(Db)
 	server.Port = port
 	server.ReadTimeout = time.Minute * 10
 	server.WriteTimeout = time.Minute * 10

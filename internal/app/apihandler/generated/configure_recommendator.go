@@ -10,6 +10,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
@@ -22,7 +23,7 @@ func configureFlags(api *specops.RecommendatorAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
 }
 
-func configureAPI(api *specops.RecommendatorAPI) http.Handler {
+func configureAPI(api *specops.RecommendatorAPI, db *sqlx.DB) http.Handler {
 	// configure the api here
 	api.ServeError = errors.ServeError
 
@@ -44,7 +45,7 @@ func configureAPI(api *specops.RecommendatorAPI) http.Handler {
 	// You may change here the memory limit for this multipart form parser. Below is the default (32 MB).
 	// specops.PostRecommendationsMaxParseMemory = 32 << 20
 
-	service := apihandler.NewRecommendatorService(Db)
+	service := apihandler.NewRecommendatorService(db)
 
 	// configure handlers
 	api.GetRecommendationsBarcodeHandler = specops.GetRecommendationsBarcodeHandlerFunc(service.GetRecommendationsBarcodeHandler)

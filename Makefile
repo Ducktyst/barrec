@@ -38,7 +38,7 @@ clean-generate:  conv-swag-clean # где лучше поместить очис
 
 swagger-generate:
 	mkdir -p ./internal/app/apihandler/generated/
-	swagger generate server --exclude-main \
+	swagger generate server --exclude-main --skip-support \
 	-A recommendator -m generated/specmodels -s generated -a specops \
 	-t ./internal/app/apihandler/ -f ./api/swagger.yaml
 

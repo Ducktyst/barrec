@@ -12,7 +12,7 @@ CREATE TABLE products (
     -- short_name VARCHAR(200),
 --    barcode VARCHAR(255),
     -- go_search_template TEXT,
-    url VARCHAR(255),
+    url TEXT,
     shop_id INTEGER,
     price INTEGER,
     -- TODO: updated_at 
