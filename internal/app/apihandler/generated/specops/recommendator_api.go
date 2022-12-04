@@ -52,6 +52,9 @@ func NewRecommendatorAPI(spec *loads.Document) *RecommendatorAPI {
 		PostRecommendationsHandler: PostRecommendationsHandlerFunc(func(params PostRecommendationsParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostRecommendations has not yet been implemented")
 		}),
+		PostRecommendationsAnalyzeHandler: PostRecommendationsAnalyzeHandlerFunc(func(params PostRecommendationsAnalyzeParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostRecommendationsAnalyze has not yet been implemented")
+		}),
 	}
 }
 
@@ -97,6 +100,8 @@ type RecommendatorAPI struct {
 	GetRecommendationsBarcodeHandler GetRecommendationsBarcodeHandler
 	// PostRecommendationsHandler sets the operation handler for the post recommendations operation
 	PostRecommendationsHandler PostRecommendationsHandler
+	// PostRecommendationsAnalyzeHandler sets the operation handler for the post recommendations analyze operation
+	PostRecommendationsAnalyzeHandler PostRecommendationsAnalyzeHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -185,6 +190,9 @@ func (o *RecommendatorAPI) Validate() error {
 	}
 	if o.PostRecommendationsHandler == nil {
 		unregistered = append(unregistered, "PostRecommendationsHandler")
+	}
+	if o.PostRecommendationsAnalyzeHandler == nil {
+		unregistered = append(unregistered, "PostRecommendationsAnalyzeHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -288,6 +296,10 @@ func (o *RecommendatorAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/recommendations"] = NewPostRecommendations(o.context, o.PostRecommendationsHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/recommendations/analyze"] = NewPostRecommendationsAnalyze(o.context, o.PostRecommendationsAnalyzeHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

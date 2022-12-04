@@ -85,6 +85,40 @@ func init() {
         }
       }
     },
+    "/recommendations/analyze/": {
+      "post": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "summary": "Получить рекомендации по штрихкоду с изображения",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Изображение со штрикодом",
+            "name": "content",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "перечисление альтернатив",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recommendation"
+              }
+            }
+          },
+          "400": {
+            "description": "ошибка",
+            "schema": {
+              "$ref": "#/definitions/GenericError"
+            }
+          }
+        }
+      }
+    },
     "/recommendations/{barcode}": {
       "get": {
         "summary": "Получить рекомендации по штрихкоду",
@@ -259,6 +293,40 @@ func init() {
       }
     },
     "/recommendations/": {
+      "post": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "summary": "Получить рекомендации по штрихкоду с изображения",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Изображение со штрикодом",
+            "name": "content",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "перечисление альтернатив",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Recommendation"
+              }
+            }
+          },
+          "400": {
+            "description": "ошибка",
+            "schema": {
+              "$ref": "#/definitions/GenericError"
+            }
+          }
+        }
+      }
+    },
+    "/recommendations/analyze/": {
       "post": {
         "consumes": [
           "multipart/form-data"

@@ -26,7 +26,7 @@ stop-driver:
 # 	goose -dir deployments/migrations sqlite3 ./foo.db up
 
 goose-new:
-	goose -dir deployments/migrations postgres "user=aleksej password=postgres dbname=recommendator sslmode=disable" sql create
+	goose -dir deployments/migrations postgres "user=aleksej password=postgres dbname=recommendator sslmode=disable" create new sql
 
 goose-up:
 	goose -dir deployments/migrations postgres "user=aleksej password=postgres dbname=recommendator sslmode=disable" up

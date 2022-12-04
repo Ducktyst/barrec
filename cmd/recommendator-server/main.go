@@ -1,18 +1,29 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 )
 
 const port = 8091
+
+var (
+	Db     *sqlx.DB
+	DBhost = "localhost"
+	DBport = 5432
+	DBuser = "aleksej"
+	DBname = "recommendator"
+)
 
 func main() {
 
@@ -45,6 +56,22 @@ func main() {
 		}
 		os.Exit(code)
 	}
+	// init db start
+	connStr := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable", DBhost, DBport, DBuser, DBname)
+	Db, err = sqlx.Open("postgres", connStr)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		logrus.Info("db connection closing...")
+		Db.Close()
+	}()
+
+	err = Db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	// init db end
 
 	server.ConfigureAPI()
 	server.Port = port
@@ -67,5 +94,5 @@ func main() {
 	if err := server.Serve(); err != nil {
 		log.Fatalln(err)
 	}
-
+	logrus.Info("server stop serving")
 }

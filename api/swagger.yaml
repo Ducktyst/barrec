@@ -129,6 +129,28 @@ paths:
           description: 'ошибка'
           schema:
             $ref: '#/definitions/GenericError'
+  /recommendations/analyze/:
+    post:
+      summary: Получить рекомендации по штрихкоду с изображения
+      parameters:
+        - in: formData
+          name: content
+          type: file
+          required: true
+          description: Изображение со штрикодом
+      consumes:
+        - multipart/form-data
+      responses:
+        '200':
+          description: 'перечисление альтернатив'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Recommendation'
+        '400':
+          description: 'ошибка'
+          schema:
+            $ref: '#/definitions/GenericError'
   /ping:
     get:
       summary: Проверка работоспособности сервиса
