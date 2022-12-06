@@ -58,14 +58,21 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 		return specops.NewPostRecommendationsBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
-	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler ", img_barcode, err)
-	res, err := srv.findByBarcode(img_barcode)
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler findByBarcode ", img_barcode, err)
+	_, err = srv.findByBarcode(img_barcode)
 	if err != nil {
 		return specops.NewPostRecommendationsAnalyzeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler levensteinRecommendations ", img_barcode, err)
+	res, err := srv.levensteinRecommendations(img_barcode)
+	if err != nil {
+		return specops.NewPostRecommendationsAnalyzeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
+	}
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler levensteinRecommendations end ", img_barcode, err)
+
 	payload := make([]*specmodels.Recommendation, len(res))
-	for i := range payload {
+	for i := range res {
 		payload[i] = &specmodels.Recommendation{
 			Articul:  res[i].Name,
 			ShopName: res[i].ShopName,
@@ -141,11 +148,11 @@ func (srv *RecommendatorService) findByBarcode(barcode string) ([]common.Recomme
 		ShopName string `db:"shop_name"`
 		Price    int    `db:"barcode"`
 	}
-	selectQ := `select bp.barcode, p.id as product_id, p.articul, s.name
+	selectQ := `select bp.barcode, p.id as product_id, p.articul, s.name shop_name
 from barcode_products bp 
 inner join products p on (bp.product_id = p.id)
 inner join shops s on (p.shop_id = s.id)
-where bp.barcode = ?`
+where bp.barcode = $1`
 	// selectQ := `select bd.barcode, p.url, from barcode_products bp inner join products p on (product_id = id) inner join shops s on (shop_id = id)`
 	var products = make([]product, 0)
 	if err = srv.db.Select(&products, selectQ, barcode); err != nil {
@@ -172,12 +179,49 @@ where bp.barcode = ?`
 	return res, err
 }
 
+func (srv *RecommendatorService) updateProductInfo(productID int, barcode string, originalArticul string, rec common.Recommendation) error {
+	// TODO: add updated_at
+	updateQ := `update products p set p.price = $1 where id = $2`
+	res, err := srv.db.Exec(updateQ, rec.Price, productID)
+	if err != nil {
+		logrus.Errorf("srv.db.Exec error = %s", err)
+		return err // ?
+	}
+
+	if rowsCnt, err := res.RowsAffected(); err != nil {
+		return err
+	} else if rowsCnt > 0 {
+		logrus.Infof("productId %d barcode %s updated", productID, barcode)
+		return nil
+	}
+
+	var shopID string
+	if err = srv.db.Get(&shopID, `select s.id from shops s where s.name = $1`, rec.ShopName); err != nil {
+		logrus.Errorf("srv.db.Get shopName=%s error = %s", rec.ShopName, err)
+		return err
+	}
+
+	// get id
+	insertQ := `insert into products (articul, url, shop_id, price) values ($1, $2, $3, $4)`
+	_, err = srv.db.Exec(insertQ, rec.Name, rec.Url, shopID, rec.Price)
+	if err != nil {
+		logrus.Errorf("srv.db.Exec articul=%s error = %s", rec.Name, err)
+		return err // ?
+	}
+
+	return nil
+}
+
+// levensteinRecommendations
+// производит получение артикула товара по штрихкоду
+// достает из бд все товары у которых есть штрихкод
+// рассчитывает расстояние Левинштейна для каждого товара от имеющегося артикула
+//
 func (srv *RecommendatorService) levensteinRecommendations(barcode string) ([]common.Recommendation, error) {
 	articul, err := common.GetProductArticul(barcode)
 	if err != nil {
 		return nil, err
 	}
-	//TODO: upstert
 
 	// select all
 	type product struct {
@@ -191,11 +235,10 @@ func (srv *RecommendatorService) levensteinRecommendations(barcode string) ([]co
 	selectQ := `select p.id as product_id, p.articul, s.name shop_name, p.url
 from barcode_products bp 
 inner join products p on (bp.product_id = p.id)
-inner join shops s on (p.shop_id = s.id)
-where bp.barcode = $1`
+inner join shops s on (p.shop_id = s.id)`
 	// selectQ := `select bd.barcode, p.url, from barcode_products bp inner join products p on (product_id = id) inner join shops s on (shop_id = id)`
 	var products = make([]product, 0)
-	if err = srv.db.Select(&products, selectQ, barcode); err != nil {
+	if err = srv.db.Select(&products, selectQ); err != nil {
 		logrus.Errorf("srv.db.Select products barcode = %s error = %s", barcode, err)
 		return nil, err
 	}
@@ -204,22 +247,23 @@ where bp.barcode = $1`
 	distancesProducts := make(map[int][]int, len(products)) // расстояние => товары с таким расстоянием
 	productsMap := make(map[int]product, len(products))
 
-	disctances := make([]int, 0, len(products))
+	distances := make([]int, 0, len(products))
 	for _, p := range products {
 		dist := leven.Distance(articul, p.Articul)
 		distancesProducts[dist] = append(distancesProducts[dist], p.ID)
 		// productsDistance[p.ID] = dist
 		productsMap[p.ID] = p
-		disctances = append(disctances, dist)
+		distances = append(distances, dist)
 	}
-	sort.Ints(disctances)
+
+	sort.Ints(distances)
 	// wrap tx
 	recommendations := make([]common.Recommendation, 0, 5)
 	distancesCnt := 5
-	if len(disctances) < 5 {
-		distancesCnt = len(disctances)
+	if len(distances) < 5 {
+		distancesCnt = len(distances)
 	}
-	for _, dist := range disctances[:distancesCnt] {
+	for _, dist := range distances[:distancesCnt] {
 		for _, pID := range distancesProducts[dist] {
 			prod := productsMap[pID]
 			recommendations = append(recommendations, common.Recommendation{
@@ -231,32 +275,13 @@ where bp.barcode = $1`
 		}
 	}
 
+	logrus.Debug("products", products)
+	logrus.Debug("productsMap", productsMap)
+	logrus.Debug("distancesProducts", distancesProducts)
+	logrus.Debug("disctances", distances)
+	logrus.Debug("disctances Count", distancesCnt)
+
 	// var productDistances = make(map[productID]map[levensteinDist][]productID, 0)
 
 	return recommendations, err
-}
-
-func (srv *RecommendatorService) updateProductInfo(productID int, barcode string, originalArticul string, rec common.Recommendation) error {
-	newPrice := rec.Price
-	// TODO: add updated_at
-	updateQ := `update products p set p.price = ? where id = ?`
-	res, err := srv.db.Exec(updateQ, newPrice, productID)
-	if err != nil {
-		logrus.Errorf("srv.db.Exec error = %s", err)
-		return err // ?
-	}
-	if rowsCnt, _ := res.RowsAffected(); rowsCnt == 0 {
-		var shopID string
-		if err = srv.db.Get(&shopID, `select s.id from shops s where s.name = ?`, rec.ShopName); err != nil {
-			logrus.Errorf("srv.db.Get shopName=%s error = %s", rec.ShopName, err)
-			return err
-		}
-		insertQ := `insert into products (articul, url, shop_id, price) values (?, ?, ?, ?)`
-		_, err := srv.db.Exec(insertQ, rec.Name, rec.Url, shopID, rec.Price)
-		if err != nil {
-			logrus.Errorf("srv.db.Exec articul=%s error = %s", rec.Name, err)
-			return err // ?
-		}
-	}
-	return nil
 }

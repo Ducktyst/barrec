@@ -3,6 +3,7 @@ module github.com/ducktyst/bar_recomend
 go 1.18
 
 require (
+	github.com/AlekSi/pointer v1.2.0
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/agext/levenshtein v1.2.3
 	github.com/agnivade/levenshtein v1.1.1

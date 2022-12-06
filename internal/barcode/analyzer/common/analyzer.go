@@ -23,6 +23,9 @@ const (
 	KazanExpress = iota
 	Ozon         = iota
 
+	KazanExpressCode = "kazanexpress"
+	YandexMarketCode = "yandexmarket"
+
 	KazanExpressName = "Kazan Express"
 	YandexMarketName = "Yandex Market"
 )

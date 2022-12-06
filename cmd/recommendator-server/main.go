@@ -26,6 +26,7 @@ var (
 )
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 
 	swaggerSpec, err := loads.Embedded(generated.SwaggerJSON, generated.FlatSwaggerJSON)
 	if err != nil {
