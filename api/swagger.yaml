@@ -18,6 +18,12 @@ definitions:
         type: string
   Recommendation:
     type: object
+    required:
+      - articul
+      - shopName
+      - price
+      - barcode 
+      - url
     properties:
       articul:
         type: string
@@ -25,7 +31,7 @@ definitions:
         type: string
       price:
         type: number
-        format: float64
+        format: int64
       barcode:
         type: string
       url:

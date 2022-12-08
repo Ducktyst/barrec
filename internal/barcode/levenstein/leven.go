@@ -6,20 +6,20 @@ package leven
 func Distance(str1, str2 string) int {
 	var cost, lastdiag, olddiag, p int
 
-	s1 := []rune(str1)
-	s2 := []rune(str2)
+	s1 := []rune(str1) // массив символов 1 строки
+	s2 := []rune(str2) // 2й строки
 
-	len1 := len(s1)
-	len2 := len(s2)
+	len1 := len(s1) // длина 1 строки
+	len2 := len(s2) // 2й строки
 
-	for ; p < len1 && p < len2; p++ {
+	for ; p < len1 && p < len2; p++ { // p свдигается до индекса первого различного символа
 		if s2[p] != s1[p] {
 			break
 		}
 	}
-	s1, s2 = s1[p:], s2[p:]
-	len1 -= p
-	len2 -= p
+	s1, s2 = s1[p:], s2[p:] // 
+	len1 -= p               // длина различающихся символов слова 1
+	len2 -= p               // длина различающихся символов слова 2
 
 	for 0 < len1 && 0 < len2 {
 		if s1[len1-1] != s2[len2-1] {

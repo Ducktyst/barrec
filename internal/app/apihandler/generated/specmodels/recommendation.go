@@ -8,8 +8,10 @@ package specmodels
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // Recommendation recommendation
@@ -18,23 +20,98 @@ import (
 type Recommendation struct {
 
 	// articul
-	Articul string `json:"articul,omitempty"`
+	// Required: true
+	Articul *string `json:"articul"`
 
 	// barcode
-	Barcode string `json:"barcode,omitempty"`
+	// Required: true
+	Barcode *string `json:"barcode"`
 
 	// price
-	Price float64 `json:"price,omitempty"`
+	// Required: true
+	Price *int64 `json:"price"`
 
 	// shop name
-	ShopName string `json:"shopName,omitempty"`
+	// Required: true
+	ShopName *string `json:"shopName"`
 
 	// url
-	URL string `json:"url,omitempty"`
+	// Required: true
+	URL *string `json:"url"`
 }
 
 // Validate validates this recommendation
 func (m *Recommendation) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateArticul(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateBarcode(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePrice(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateShopName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateURL(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Recommendation) validateArticul(formats strfmt.Registry) error {
+
+	if err := validate.Required("articul", "body", m.Articul); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Recommendation) validateBarcode(formats strfmt.Registry) error {
+
+	if err := validate.Required("barcode", "body", m.Barcode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Recommendation) validatePrice(formats strfmt.Registry) error {
+
+	if err := validate.Required("price", "body", m.Price); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Recommendation) validateShopName(formats strfmt.Registry) error {
+
+	if err := validate.Required("shopName", "body", m.ShopName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Recommendation) validateURL(formats strfmt.Registry) error {
+
+	if err := validate.Required("url", "body", m.URL); err != nil {
+		return err
+	}
+
 	return nil
 }
 

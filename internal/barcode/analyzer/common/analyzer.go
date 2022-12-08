@@ -37,7 +37,7 @@ var browserName = "firefox" // or "chrome"
 type Recommendation struct {
 	Name     string
 	ShopName string
-	Price    int
+	Price    int64
 	Url      string
 }
 

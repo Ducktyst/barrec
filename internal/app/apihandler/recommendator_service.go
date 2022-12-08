@@ -3,8 +3,10 @@ package apihandler
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
+	"github.com/AlekSi/pointer"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specmodels"
 	"github.com/ducktyst/bar_recomend/internal/app/apihandler/generated/specops"
 	"github.com/ducktyst/bar_recomend/internal/barcode/analyzer/common"
@@ -27,19 +29,30 @@ func NewRecommendatorService(db *sqlx.DB) *RecommendatorService {
 func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops.GetRecommendationsBarcodeParams) middleware.Responder {
 	fmt.Println("GetRecommendationsBarcodeHandler", params.Barcode)
 
+	// 0 start
 	res, err := srv.findByBarcode(params.Barcode)
 	if err != nil {
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
+	// 0 end
+
+	// 1 start
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler levensteinRecommendations ", params.Barcode)
+	res, err = srv.levensteinRecommendations(params.Barcode)
+	if err != nil {
+		return specops.NewPostRecommendationsAnalyzeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
+	}
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler levensteinRecommendations end ", params.Barcode, err)
+	// 1 end
 
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
 		payload[i] = &specmodels.Recommendation{
-			Articul:  res[i].Name,
-			ShopName: res[i].ShopName,
-			Barcode:  params.Barcode,
-			Price:    float64(res[i].Price),
-			URL:      res[i].Url,
+			Articul:  pointer.ToString(res[i].Name),
+			ShopName: pointer.ToString(res[i].ShopName),
+			Barcode:  pointer.ToString(params.Barcode),
+			Price:    pointer.ToInt64OrNil(res[i].Price),
+			URL:      pointer.ToString(res[i].Url),
 		}
 	}
 
@@ -58,13 +71,13 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 		return specops.NewPostRecommendationsBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 
-	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler findByBarcode ", img_barcode, err)
-	_, err = srv.findByBarcode(img_barcode)
-	if err != nil {
-		return specops.NewPostRecommendationsAnalyzeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
-	}
+	// logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler findByBarcode start ", img_barcode)
+	// _, err = srv.findByBarcode(img_barcode)
+	// if err != nil {
+	// 	return specops.NewPostRecommendationsAnalyzeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
+	// }
 
-	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler levensteinRecommendations ", img_barcode, err)
+	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler levensteinRecommendations start ", img_barcode)
 	res, err := srv.levensteinRecommendations(img_barcode)
 	if err != nil {
 		return specops.NewPostRecommendationsAnalyzeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
@@ -74,11 +87,11 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range res {
 		payload[i] = &specmodels.Recommendation{
-			Articul:  res[i].Name,
-			ShopName: res[i].ShopName,
-			Barcode:  img_barcode,
-			Price:    float64(res[i].Price),
-			URL:      res[i].Url,
+			Articul:  pointer.ToString(res[i].Name),
+			ShopName: pointer.ToString(res[i].ShopName),
+			Barcode:  pointer.ToString(img_barcode),
+			Price:    pointer.ToInt64OrNil(res[i].Price),
+			URL:      pointer.ToString(res[i].Url),
 		}
 	}
 	return specops.NewPostRecommendationsOK().WithPayload(payload)
@@ -105,11 +118,11 @@ func (srv *RecommendatorService) PostRecommendationsAnalyzeHandler(params specop
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range payload {
 		payload[i] = &specmodels.Recommendation{
-			Articul:  res[i].Name,
-			ShopName: res[i].ShopName,
-			Barcode:  img_barcode,
-			Price:    float64(res[i].Price),
-			URL:      res[i].Url,
+			Articul:  pointer.ToString(res[i].Name),
+			ShopName: pointer.ToString(res[i].ShopName),
+			Barcode:  pointer.ToString(img_barcode),
+			Price:    pointer.ToInt64OrNil(res[i].Price),
+			URL:      pointer.ToString(res[i].Url),
 		}
 	}
 	return specops.NewPostRecommendationsAnalyzeOK().WithPayload(payload)
@@ -122,6 +135,7 @@ func (srv *RecommendatorService) GetPingHandler(params specops.GetPingParams) mi
 func (srv *RecommendatorService) findByBarcode(barcode string) ([]common.Recommendation, error) {
 	articul, err := common.GetProductArticul(barcode)
 	if err != nil {
+		logrus.Errorf("common.GetProductArticul error = %s", err)
 		return nil, err
 	}
 
@@ -152,36 +166,44 @@ func (srv *RecommendatorService) findByBarcode(barcode string) ([]common.Recomme
 from barcode_products bp 
 inner join products p on (bp.product_id = p.id)
 inner join shops s on (p.shop_id = s.id)
-where bp.barcode = $1`
+where p.articul = $1`
 	// selectQ := `select bd.barcode, p.url, from barcode_products bp inner join products p on (product_id = id) inner join shops s on (shop_id = id)`
 	var products = make([]product, 0)
-	if err = srv.db.Select(&products, selectQ, barcode); err != nil {
-		logrus.Errorf("srv.db.Select products error = %s", err)
+	if err = srv.db.Select(&products, selectQ, articul); err != nil {
+		logrus.Errorf("srv.db.Select products articul = %s error = %s", articul, err)
 		return nil, err
 	}
 	// wrap tx
-	for i := range products {
-		p := products[i]
-		// var newPrice int
-		switch p.ShopName {
-		case common.KazanExpressName:
-			srv.updateProductInfo(p.ID, barcode, articul, kazanexpressRecommendation)
-		case common.YandexMarketName:
-			srv.updateProductInfo(p.ID, barcode, articul, ymRecommendation)
-		default:
-			logrus.Info("shop not found")
-		}
-	}
 
 	res := make([]common.Recommendation, 2)
 	res[0] = kazanexpressRecommendation
 	res[1] = ymRecommendation
+
+	// Что тут вообще происходит?
+	for i := range res {
+		p := res[i]
+
+		// TODO: зарефакторить. shopName не надежный идентификатор магазина, так как потенйиально может меняться
+		var rec common.Recommendation
+
+		switch p.ShopName {
+		case common.KazanExpressName:
+			rec = kazanexpressRecommendation
+		case common.YandexMarketName:
+			rec = ymRecommendation
+		default:
+			logrus.Infof("shop not found: %s")
+			continue
+		}
+
+		srv.upsertProduct(barcode, articul, rec)
+	}
 	return res, err
 }
 
 func (srv *RecommendatorService) updateProductInfo(productID int, barcode string, originalArticul string, rec common.Recommendation) error {
 	// TODO: add updated_at
-	updateQ := `update products p set p.price = $1 where id = $2`
+	updateQ := `update products set price = $1 where id = $2`
 	res, err := srv.db.Exec(updateQ, rec.Price, productID)
 	if err != nil {
 		logrus.Errorf("srv.db.Exec error = %s", err)
@@ -189,6 +211,7 @@ func (srv *RecommendatorService) updateProductInfo(productID int, barcode string
 	}
 
 	if rowsCnt, err := res.RowsAffected(); err != nil {
+		logrus.Errorf("updateProductInfo RowsAffected error = %s", err)
 		return err
 	} else if rowsCnt > 0 {
 		logrus.Infof("productId %d barcode %s updated", productID, barcode)
@@ -212,6 +235,63 @@ func (srv *RecommendatorService) updateProductInfo(productID int, barcode string
 	return nil
 }
 
+func (srv *RecommendatorService) upsertProduct(barcode string, originalArticul string, rec common.Recommendation) error {
+	// TODO: add updated_at
+	var shopCode string
+	switch rec.ShopName {
+	case common.KazanExpressName:
+		shopCode = common.KazanExpressCode
+	case common.YandexMarketName:
+		shopCode = common.YandexMarketCode
+	}
+
+	// UPDATE IF EXISTS
+	updateQ := `update products set price = $1 
+from products p, barcode_products bp, shops s
+where bp.barcode = $2 and p.articul = $3 and s.name = $4` // returning p.id - хватит и кол-ва измененных строк
+	res, err := srv.db.Exec(updateQ, rec.Price, barcode, rec.Name, shopCode)
+	if err != nil {
+		logrus.Errorf("srv.db.Exec error = %s", err)
+		return err // ?
+	}
+
+	logrus.Infof("srv.upsertProduct update barcode = %s articul = %s res = %v, err = %w", barcode, rec.Name, res, err)
+
+	if rowsCnt, err := res.RowsAffected(); err != nil {
+		logrus.Errorf("update rowsAffected error = %s", err)
+		return err
+	} else if rowsCnt > 0 {
+		logrus.Infof("articul %s at shop %s set price %d", originalArticul, shopCode, rec.Price)
+		return nil
+	}
+
+	// INSERT IF NOT UPDATED
+	var shopID string
+	if err = srv.db.Get(&shopID, `select s.id from shops s where s.name = $1`, shopCode); err != nil {
+		logrus.Errorf("srv.db.Get shopName=%s error = %s", shopCode, err)
+		return err
+	}
+	logrus.Info("shopID", shopID)
+
+	// TODO: wrap transaction
+	var productID int
+	insertQ := `insert into products (articul, url, shop_id, price) values ($1, $2, $3, $4) returning id`
+	err = srv.db.Get(&productID, insertQ, rec.Name, rec.Url, shopID, rec.Price)
+	if err != nil {
+		logrus.Errorf("srv.db.Insert articul=%s error = %s", rec.Name, err)
+		return err
+	}
+
+	insertQ = `insert into barcode_products (barcode, product_id) values ($1, $2)`
+	_, err = srv.db.Exec(insertQ, barcode, productID)
+	if err != nil {
+		logrus.Errorf("srv.db.Insert barcode=%s product_id=%d error = %s", barcode, productID, err)
+		return err
+	}
+
+	return nil
+}
+
 // levensteinRecommendations
 // производит получение артикула товара по штрихкоду
 // достает из бд все товары у которых есть штрихкод
@@ -222,6 +302,8 @@ func (srv *RecommendatorService) levensteinRecommendations(barcode string) ([]co
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("aricul = ", articul, len([]rune(articul)))
 
 	// select all
 	type product struct {
@@ -253,7 +335,12 @@ inner join shops s on (p.shop_id = s.id)`
 		distancesProducts[dist] = append(distancesProducts[dist], p.ID)
 		// productsDistance[p.ID] = dist
 		productsMap[p.ID] = p
-		distances = append(distances, dist)
+
+		if dist < len([]rune(articul))-strings.Count(articul, " ") {
+			// logrus.Info("dist < len(articul) ", dist, " < ", len([]rune(articul)))
+			// logrus.Info("articul, p.Articul ", articul, ", ", p.Articul)
+			distances = append(distances, dist) // если нет совпадения даже по одной букве, то смысл добвлять слово
+		}
 	}
 
 	sort.Ints(distances)
@@ -275,11 +362,11 @@ inner join shops s on (p.shop_id = s.id)`
 		}
 	}
 
-	logrus.Debug("products", products)
-	logrus.Debug("productsMap", productsMap)
-	logrus.Debug("distancesProducts", distancesProducts)
-	logrus.Debug("disctances", distances)
-	logrus.Debug("disctances Count", distancesCnt)
+	// logrus.Debug("articul ", articul)
+	// logrus.Debug("productsMap", productsMap)
+	// // logrus.Debug("distancesProducts ", distancesProducts)
+	// logrus.Debug("disctances ", distances)
+	// logrus.Debug("disctances Count ", distancesCnt)
 
 	// var productDistances = make(map[productID]map[levensteinDist][]productID, 0)
 
