@@ -356,7 +356,7 @@ inner join shops s on (p.shop_id = s.id)`
 			recommendations = append(recommendations, common.Recommendation{
 				Name:     prod.Articul,
 				ShopName: prod.ShopName,
-				Price:    prod.Price,
+				Price:    int64(prod.Price),
 				Url:      prod.URL,
 			})
 		}

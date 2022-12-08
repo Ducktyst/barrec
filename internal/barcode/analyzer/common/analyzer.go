@@ -63,7 +63,7 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 			return Recommendation{
 				Name:     articul,
 				ShopName: KazanExpressName,
-				Price:    price,
+				Price:    int64(price),
 				Url:      url,
 			}, err
 		}
@@ -74,7 +74,7 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 			return Recommendation{
 				Name:     articul,
 				ShopName: YandexMarketName,
-				Price:    price,
+				Price:    int64(price),
 				Url:      url,
 			}, err
 		}
