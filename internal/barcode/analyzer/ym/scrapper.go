@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	YM_HOST       = "https://market.yandex.ru/"
-	YM_SEARCH_URL = "https://market.yandex.ru/search?cvredirect=2&text={{.search_text}}"
-	YM_LIST_URL   = "https://market.yandex.ru/catalog--produkty/54434/list?srnum=1002&was_redir=1&rt=9&rs=eJwzEg1grGLh-HGSdRYj14X9F7ZebADiNgBj9QrL&text={{.search_text}}&hid=91307&how=aprice&allowCollapsing=1&local-offers-first=0"
-	SEARCH_URL    = YM_LIST_URL
+	YM_HOST          = "https://market.yandex.ru/"
+	YM_SEARCH_URL    = "https://market.yandex.ru/search?cvredirect=2&text={{.search_text}}"
+	YM_LIST_URL      = "https://market.yandex.ru/catalog--produkty/54434/list?srnum=1002&was_redir=1&rt=9&rs=eJwzEg1grGLh-HGSdRYj14X9F7ZebADiNgBj9QrL&text={{.search_text}}&hid=91307&how=aprice&allowCollapsing=1&local-offers-first=0"
+	YM_UNIVERSAL_URL = "https://market.yandex.ru/search?cvredirect=0&text=&allowCollapsing=1&local-offers-first=0"
+	SEARCH_URL       = YM_UNIVERSAL_URL
 )
 
 type price int // полная цена с копейками

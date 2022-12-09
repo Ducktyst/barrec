@@ -36,13 +36,14 @@ var browserName = "firefox" // or "chrome"
 
 type Recommendation struct {
 	Name     string
+	Barcode  string
 	ShopName string
 	Price    int64
 	Url      string
 }
 
 // getPriceFromCitilink
-func GetPriceFrom(site site, articul string) (Recommendation, error) {
+func GetPriceFrom(site site, barcode, articul string) (Recommendation, error) {
 	caps := selenium.Capabilities{
 		"browserName": browserName,
 	}
@@ -60,8 +61,10 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 		{
 			url := GenerateSearchUrl(kazanexpress.SEARCH_URL, articul)
 			url, price, err := kazanexpress.ParseWithSelenium(wd, url) // TODO: result as struct
+			logrus.Debugf("url = %s price = %d", url, price)
 			return Recommendation{
 				Name:     articul,
+				Barcode:  barcode,
 				ShopName: KazanExpressName,
 				Price:    int64(price),
 				Url:      url,
@@ -71,8 +74,10 @@ func GetPriceFrom(site site, articul string) (Recommendation, error) {
 		{
 			url := GenerateSearchUrl(ym.SEARCH_URL, articul)
 			url, price, err := ym.ParseWithSelenium(wd, url)
+			logrus.Debugf("url = %s price = %d", url, price)
 			return Recommendation{
 				Name:     articul,
+				Barcode:  barcode,
 				ShopName: YandexMarketName,
 				Price:    int64(price),
 				Url:      url,

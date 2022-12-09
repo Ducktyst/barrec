@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/tebeka/selenium"
 	// https://github.com/SeleniumHQ/docker-selenium
 )
@@ -17,6 +18,7 @@ var SEARCH_URL = KAZAN_SEARCH_URL
 
 // Возвращает цену с копейками в последних двух символах
 func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
+	logrus.Infof("ParseWithSelenium %s", url)
 	if err := wd.Get(url); err != nil {
 		return "", 0, fmt.Errorf(`wd.Get err %w`, err)
 	}
@@ -25,7 +27,12 @@ func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
 	if err != nil {
 		return "", 0, fmt.Errorf(`get product card from [data-test-id="item__product-card"] error: %w`, err)
 	}
-	detailUrl, err := productCard.GetAttribute("href")
+	detailUrlElem, err := productCard.FindElement(selenium.ByCSSSelector, `[class="subtitle-item"]`)
+	if err != nil {
+		return "", 0, fmt.Errorf(`get product card elem url error: %w`, err)
+	}
+	logrus.Debug(detailUrlElem.Text())
+	detailUrl, err := detailUrlElem.GetAttribute("href")
 	if err != nil {
 		return "", 0, fmt.Errorf(`get product card url error: %w`, err)
 	}
@@ -50,7 +57,9 @@ func ParseWithSelenium(wd selenium.WebDriver, url string) (string, int, error) {
 		return "", 0, fmt.Errorf(`recognize price value %w`, err)
 	}
 	// конец парсинг цены
-	return KAZAN_EXPRESS_HOST + detailUrl, int(price * 100), nil // проверить конвертацию, 100,90 => 10090 , 100,909 => 10090, а не 10091
+	resUrl := KAZAN_EXPRESS_HOST + detailUrl
+	resPrice := int(price * 100)
+	return resUrl, resPrice, nil // проверить конвертацию, 100,90 => 10090 , 100,909 => 10090, а не 10091
 }
 
 // примеры безинтерфейсного браузера https://github.com/chromedp/examples

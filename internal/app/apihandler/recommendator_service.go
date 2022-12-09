@@ -1,6 +1,8 @@
 package apihandler
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -35,6 +37,9 @@ func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops
 		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
 	}
 	// 0 end
+	if err := srv.upsertProducts(res); err != nil {
+		return specops.NewGetRecommendationsBarcodeBadRequest().WithPayload(&specmodels.GenericError{Msg: err.Error()})
+	}
 
 	// 1 start
 	logrus.Info(time.Now().Format(time.RFC3339), " PostRecommendationsHandler levensteinRecommendations ", params.Barcode)
@@ -46,7 +51,7 @@ func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops
 	// 1 end
 
 	payload := make([]*specmodels.Recommendation, len(res))
-	for i := range payload {
+	for i := range res {
 		payload[i] = &specmodels.Recommendation{
 			Articul:  pointer.ToString(res[i].Name),
 			ShopName: pointer.ToString(res[i].ShopName),
@@ -116,7 +121,7 @@ func (srv *RecommendatorService) PostRecommendationsAnalyzeHandler(params specop
 	}
 
 	payload := make([]*specmodels.Recommendation, len(res))
-	for i := range payload {
+	for i := range res {
 		payload[i] = &specmodels.Recommendation{
 			Articul:  pointer.ToString(res[i].Name),
 			ShopName: pointer.ToString(res[i].ShopName),
@@ -145,97 +150,55 @@ func (srv *RecommendatorService) findByBarcode(barcode string) ([]common.Recomme
 	// 	Price:    5590,
 	// 	Url:      "https://kazanexpress.ru",
 	// }
-	kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, articul)
+	kazanexpressRecommendation, err := common.GetPriceFrom(common.KazanExpress, barcode, articul)
 	if err != nil {
 		logrus.Errorf("kazanExpress.getPricefrom err = %s", err)
 		// return nil, err
 	}
-	ymRecommendation, err := common.GetPriceFrom(common.YandexMarket, articul)
+	ymRecommendation, err := common.GetPriceFrom(common.YandexMarket, barcode, articul)
 	if err != nil {
 		logrus.Errorf("yandexMarket.getPricefrom err = %s", err)
 	}
 
-	type product struct {
-		ID       int    `db:"product_id"`
-		Barcode  string `db:"barcode"`
-		Articul  string `db:"articul"`
-		ShopName string `db:"shop_name"`
-		Price    int    `db:"barcode"`
-	}
-	selectQ := `select bp.barcode, p.id as product_id, p.articul, s.name shop_name
-from barcode_products bp 
-inner join products p on (bp.product_id = p.id)
-inner join shops s on (p.shop_id = s.id)
-where p.articul = $1`
-	// selectQ := `select bd.barcode, p.url, from barcode_products bp inner join products p on (product_id = id) inner join shops s on (shop_id = id)`
-	var products = make([]product, 0)
-	if err = srv.db.Select(&products, selectQ, articul); err != nil {
-		logrus.Errorf("srv.db.Select products articul = %s error = %s", articul, err)
-		return nil, err
-	}
-	// wrap tx
+	// todo: зачем?
+	// 	type product struct {
+	// 		ID       int    `db:"product_id"`
+	// 		Barcode  string `db:"barcode"`
+	// 		Articul  string `db:"articul"`
+	// 		ShopName string `db:"shop_name"`
+	// 		Price    int    `db:"barcode"`
+	// 	}
+	// 	selectQ := `select bp.barcode, p.id as product_id, p.articul, s.name shop_name
+	// from barcode_products bp
+	// inner join products p on (bp.product_id = p.id)
+	// inner join shops s on (p.shop_id = s.id)
+	// where p.articul = $1`
+	// 	// selectQ := `select bd.barcode, p.url, from barcode_products bp inner join products p on (product_id = id) inner join shops s on (shop_id = id)`
+	// 	var products = make([]product, 0)
+	// 	if err = srv.db.Select(&products, selectQ, articul); err != nil {
+	// 		logrus.Errorf("srv.db.Select products articul = %s error = %s", articul, err)
+	// 		return nil, err
+	// 	}
+	// 	// wrap tx
 
 	res := make([]common.Recommendation, 2)
 	res[0] = kazanexpressRecommendation
 	res[1] = ymRecommendation
-
-	// Что тут вообще происходит?
-	for i := range res {
-		p := res[i]
-
-		// TODO: зарефакторить. shopName не надежный идентификатор магазина, так как потенйиально может меняться
-		var rec common.Recommendation
-
-		switch p.ShopName {
-		case common.KazanExpressName:
-			rec = kazanexpressRecommendation
-		case common.YandexMarketName:
-			rec = ymRecommendation
-		default:
-			logrus.Infof("shop not found: %s")
-			continue
-		}
-
-		srv.upsertProduct(barcode, articul, rec)
-	}
-	return res, err
+	return res, nil
 }
 
-func (srv *RecommendatorService) updateProductInfo(productID int, barcode string, originalArticul string, rec common.Recommendation) error {
-	// TODO: add updated_at
-	updateQ := `update products set price = $1 where id = $2`
-	res, err := srv.db.Exec(updateQ, rec.Price, productID)
-	if err != nil {
-		logrus.Errorf("srv.db.Exec error = %s", err)
-		return err // ?
+func (srv *RecommendatorService) upsertProducts(res []common.Recommendation) error {
+	for i := range res {
+		rec := res[i]
+		if err := srv.upsertProduct(rec.Barcode, rec.Name, rec); err != nil {
+			return err
+		}
 	}
-
-	if rowsCnt, err := res.RowsAffected(); err != nil {
-		logrus.Errorf("updateProductInfo RowsAffected error = %s", err)
-		return err
-	} else if rowsCnt > 0 {
-		logrus.Infof("productId %d barcode %s updated", productID, barcode)
-		return nil
-	}
-
-	var shopID string
-	if err = srv.db.Get(&shopID, `select s.id from shops s where s.name = $1`, rec.ShopName); err != nil {
-		logrus.Errorf("srv.db.Get shopName=%s error = %s", rec.ShopName, err)
-		return err
-	}
-
-	// get id
-	insertQ := `insert into products (articul, url, shop_id, price) values ($1, $2, $3, $4)`
-	_, err = srv.db.Exec(insertQ, rec.Name, rec.Url, shopID, rec.Price)
-	if err != nil {
-		logrus.Errorf("srv.db.Exec articul=%s error = %s", rec.Name, err)
-		return err // ?
-	}
-
 	return nil
 }
 
 func (srv *RecommendatorService) upsertProduct(barcode string, originalArticul string, rec common.Recommendation) error {
+	logrus.Debugf("upsertProduct barcode = %s originalArticul = %s res.Price = %d rec.Name = %s rec.ShopName = %s", barcode, originalArticul, rec.Price, rec.Name, rec.ShopName)
 	// TODO: add updated_at
 	var shopCode string
 	switch rec.ShopName {
@@ -243,50 +206,73 @@ func (srv *RecommendatorService) upsertProduct(barcode string, originalArticul s
 		shopCode = common.KazanExpressCode
 	case common.YandexMarketName:
 		shopCode = common.YandexMarketCode
-	}
-
-	// UPDATE IF EXISTS
-	updateQ := `update products set price = $1 
-from products p, barcode_products bp, shops s
-where bp.barcode = $2 and p.articul = $3 and s.name = $4` // returning p.id - хватит и кол-ва измененных строк
-	res, err := srv.db.Exec(updateQ, rec.Price, barcode, rec.Name, shopCode)
-	if err != nil {
-		logrus.Errorf("srv.db.Exec error = %s", err)
-		return err // ?
-	}
-
-	logrus.Infof("srv.upsertProduct update barcode = %s articul = %s res = %v, err = %w", barcode, rec.Name, res, err)
-
-	if rowsCnt, err := res.RowsAffected(); err != nil {
-		logrus.Errorf("update rowsAffected error = %s", err)
-		return err
-	} else if rowsCnt > 0 {
-		logrus.Infof("articul %s at shop %s set price %d", originalArticul, shopCode, rec.Price)
+	default:
+		logrus.Errorf("shop not found: %s", rec.ShopName)
 		return nil
 	}
 
-	// INSERT IF NOT UPDATED
-	var shopID string
-	if err = srv.db.Get(&shopID, `select s.id from shops s where s.name = $1`, shopCode); err != nil {
-		logrus.Errorf("srv.db.Get shopName=%s error = %s", shopCode, err)
+	var updateID int64
+	selectQ := `select p.id from products p 
+inner join barcode_products bp on (bp.product_id = p.id) 
+inner join shops s on (s.id = p.shop_id)
+where bp.barcode = $1 and s.name = $2 and p.articul = $3`
+	err := srv.db.Get(&updateID, selectQ, rec.Barcode, shopCode, rec.Name)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		logrus.Errorf("srv.upsertProduct srv.db.Get productID barcode = %s shopCode = %s rec.Name = %s error = %s", rec.Barcode, shopCode, rec.Name, err)
 		return err
 	}
-	logrus.Info("shopID", shopID)
+	// logrus.Infof("srv.upsertProduct select barcode = %s shopCode = %s rec.Name = %s", rec.Barcode, shopCode, rec.Name)
 
-	// TODO: wrap transaction
-	var productID int
-	insertQ := `insert into products (articul, url, shop_id, price) values ($1, $2, $3, $4) returning id`
-	err = srv.db.Get(&productID, insertQ, rec.Name, rec.Url, shopID, rec.Price)
-	if err != nil {
-		logrus.Errorf("srv.db.Insert articul=%s error = %s", rec.Name, err)
-		return err
-	}
+	if updateID == 0 { // INSERT
+		// INSERT IF NOT UPDATED
+		var shopID string
+		if err = srv.db.Get(&shopID, `select s.id from shops s where s.name = $1`, shopCode); err != nil {
+			logrus.Errorf("srv.upsertProduct getShopID shopName=%s error = %s", shopCode, err)
+			return err
+		}
+		logrus.Infof("srv.upsertProduct shopID %s", shopID)
 
-	insertQ = `insert into barcode_products (barcode, product_id) values ($1, $2)`
-	_, err = srv.db.Exec(insertQ, barcode, productID)
-	if err != nil {
-		logrus.Errorf("srv.db.Insert barcode=%s product_id=%d error = %s", barcode, productID, err)
-		return err
+		// TODO: wrap transaction
+		var newProductID int
+		insertQ := `insert into products (articul, url, shop_id, price) values ($1, $2, $3, $4) returning id`
+		err = srv.db.Get(&newProductID, insertQ, rec.Name, rec.Url, shopID, rec.Price)
+		if err != nil {
+			logrus.Errorf("srv.upsertProduct srv.db.Insert articul=%s error = %s", rec.Name, err)
+			return err
+		}
+
+		insertQ = `insert into barcode_products (barcode, product_id) values ($1, $2)`
+		_, err = srv.db.Exec(insertQ, barcode, newProductID)
+		if err != nil {
+			logrus.Errorf("srv.db.Insert barcode=%s product_id=%d error = %s", barcode, newProductID, err)
+			return err
+		}
+		logrus.Infof("srv.upsertProduct insert barcode = %s articul = %s price = %d shopCode = %s, err = %w", barcode, rec.Name, rec.Price, shopCode)
+
+	} else { // UPDATE
+
+		// UPDATE IF EXISTS
+		// updateQ := `update products set price = $1
+		// from products p, barcode_products bp, shops s
+		// where bp.barcode = $2 and p.articul = $3 and s.name = $4` // returning p.id не нужно, хватит и кол-ва измененных строк
+		// res, err := srv.db.Exec(updateQ, rec.Price, barcode, rec.Name, shopCode)// UPDATE IF EXISTS
+		updateQ := `update products set price = $1 where id = $2` // returning p.id не нужно, хватит и кол-ва измененных строк
+		res, err := srv.db.Exec(updateQ, rec.Price, updateID)
+		if err != nil {
+			logrus.Errorf("srv.db.Exec error = %s", err)
+			return err
+		}
+		logrus.Infof("srv.upsertProduct update barcode = %s articul = %s price = %d res = %v, err = %w", barcode, rec.Name, rec.Price, res, err)
+
+		var rowsCnt int64
+		if rowsCnt, err = res.RowsAffected(); err != nil {
+			logrus.Errorf("srv.upsertProduct update rowsAffected error = %s", err)
+			return err
+		}
+		if rowsCnt > 0 {
+			// 	logrus.Infof("srv.upsertProduct update rowsCnt = %d articul %s at shop %s set price %d", rowsCnt, rec.Name, shopCode, rec.Price)
+			// 	return nil
+		}
 	}
 
 	return nil
@@ -300,10 +286,8 @@ where bp.barcode = $2 and p.articul = $3 and s.name = $4` // returning p.id - х
 func (srv *RecommendatorService) levensteinRecommendations(barcode string) ([]common.Recommendation, error) {
 	articul, err := common.GetProductArticul(barcode)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("levensteinRecommendations GetProductArticul error: %w", err)
 	}
-
-	fmt.Println("aricul = ", articul, len([]rune(articul)))
 
 	// select all
 	type product struct {
@@ -311,10 +295,11 @@ func (srv *RecommendatorService) levensteinRecommendations(barcode string) ([]co
 		// Barcode  string `db:"barcode"`
 		Articul  string `db:"articul"`
 		ShopName string `db:"shop_name"`
-		Price    int    `db:"barcode"`
+		Barcode  string `db:"barcode"`
+		Price    int    `db:"price"`
 		URL      string `db:"url"`
 	}
-	selectQ := `select p.id as product_id, p.articul, s.name shop_name, p.url
+	selectQ := `select p.id as product_id, p.articul, s.name shop_name, bp.barcode, p.price price, p.url
 from barcode_products bp 
 inner join products p on (bp.product_id = p.id)
 inner join shops s on (p.shop_id = s.id)`

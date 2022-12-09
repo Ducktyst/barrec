@@ -1,7 +1,8 @@
 package common
 
 import (
-	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -21,7 +22,6 @@ type ProductInfo struct {
 }
 
 var (
-	ProductNotFound  = errors.New("product with _selected_ barcode not found")
 	barcode_list_url = "https://barcode-list.ru/barcode/RU/Поиск.htm?barcode={{.search_text}}"
 	progaonline_url  = `curl 'https://progaonline.com/kod' \
   -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9' \
@@ -63,7 +63,8 @@ func GetProductArticul(barcode string) (string, error) {
 	c.Visit(url)
 
 	if name == "" {
-		return "", ProductNotFound
+		return "", fmt.Errorf("product not found. barcode = %s", barcode)
 	}
-	return name, nil
+
+	return strings.TrimSpace(name), nil
 }
