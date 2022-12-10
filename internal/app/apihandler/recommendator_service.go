@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/AlekSi/pointer"
@@ -221,10 +220,8 @@ where bp.barcode = $1 and s.name = $2 and p.articul = $3`
 		logrus.Errorf("srv.upsertProduct srv.db.Get productID barcode = %s shopCode = %s rec.Name = %s error = %s", rec.Barcode, shopCode, rec.Name, err)
 		return err
 	}
-	// logrus.Infof("srv.upsertProduct select barcode = %s shopCode = %s rec.Name = %s", rec.Barcode, shopCode, rec.Name)
 
 	if updateID == 0 { // INSERT
-		// INSERT IF NOT UPDATED
 		var shopID string
 		if err = srv.db.Get(&shopID, `select s.id from shops s where s.name = $1`, shopCode); err != nil {
 			logrus.Errorf("srv.upsertProduct getShopID shopName=%s error = %s", shopCode, err)
@@ -250,12 +247,6 @@ where bp.barcode = $1 and s.name = $2 and p.articul = $3`
 		logrus.Infof("srv.upsertProduct insert barcode = %s articul = %s price = %d shopCode = %s, err = %w", barcode, rec.Name, rec.Price, shopCode)
 
 	} else { // UPDATE
-
-		// UPDATE IF EXISTS
-		// updateQ := `update products set price = $1
-		// from products p, barcode_products bp, shops s
-		// where bp.barcode = $2 and p.articul = $3 and s.name = $4` // returning p.id не нужно, хватит и кол-ва измененных строк
-		// res, err := srv.db.Exec(updateQ, rec.Price, barcode, rec.Name, shopCode)// UPDATE IF EXISTS
 		updateQ := `update products set price = $1 where id = $2` // returning p.id не нужно, хватит и кол-ва измененных строк
 		res, err := srv.db.Exec(updateQ, rec.Price, updateID)
 		if err != nil {
@@ -264,14 +255,9 @@ where bp.barcode = $1 and s.name = $2 and p.articul = $3`
 		}
 		logrus.Infof("srv.upsertProduct update barcode = %s articul = %s price = %d res = %v, err = %w", barcode, rec.Name, rec.Price, res, err)
 
-		var rowsCnt int64
-		if rowsCnt, err = res.RowsAffected(); err != nil {
+		if _, err = res.RowsAffected(); err != nil {
 			logrus.Errorf("srv.upsertProduct update rowsAffected error = %s", err)
 			return err
-		}
-		if rowsCnt > 0 {
-			// 	logrus.Infof("srv.upsertProduct update rowsCnt = %d articul %s at shop %s set price %d", rowsCnt, rec.Name, shopCode, rec.Price)
-			// 	return nil
 		}
 	}
 
@@ -310,32 +296,55 @@ inner join shops s on (p.shop_id = s.id)`
 		return nil, err
 	}
 	// calculate levenstein
-	// productsDistance := make(map[int]int, len(products))    // расстояние до других товаров от текущего (id => расстояние)
 	distancesProducts := make(map[int][]int, len(products)) // расстояние => товары с таким расстоянием
 	productsMap := make(map[int]product, len(products))
 
+	distancesSet := make(map[int]struct{}, len(products))
 	distances := make([]int, 0, len(products))
 	for _, p := range products {
+		p := p
 		dist := leven.Distance(articul, p.Articul)
 		distancesProducts[dist] = append(distancesProducts[dist], p.ID)
-		// productsDistance[p.ID] = dist
 		productsMap[p.ID] = p
 
-		if dist < len([]rune(articul))-strings.Count(articul, " ") {
-			// logrus.Info("dist < len(articul) ", dist, " < ", len([]rune(articul)))
-			// logrus.Info("articul, p.Articul ", articul, ", ", p.Articul)
-			distances = append(distances, dist) // если нет совпадения даже по одной букве, то смысл добвлять слово
+		// if dist < len([]rune(articul))-strings.Count(articul, " ") {
+		// logrus.Info("dist < len(articul) ", dist, " < ", len([]rune(articul)))
+		// logrus.Info("articul, p.Articul ", articul, ", ", p.Articul)
+		if _, ok := distancesSet[dist]; !ok {
+			distancesSet[dist] = struct{}{}
+			distances = append(distances, dist)
+		} // если нет совпадения даже по одной букве, то смысл добвлять слово
+		// }
+	}
+	println()
+	println("productsMap")
+	println()
+	println(productsMap)
+	for id, p := range productsMap {
+		println(id, p.Articul)
+	}
+
+	println("distancesProducts")
+	for id, prods := range distancesProducts {
+		println("dist = ", id)
+		for id, pID := range prods {
+			println(id, productsMap[pID].Articul)
 		}
 	}
 
 	sort.Ints(distances)
+	fmt.Println(distances)
 	// wrap tx
-	recommendations := make([]common.Recommendation, 0, 5)
 	distancesCnt := 5
-	if len(distances) < 5 {
+	recommendations := make([]common.Recommendation, 0, distancesCnt)
+	if len(distances) < distancesCnt {
 		distancesCnt = len(distances)
 	}
+
+	var found = 0
+OUTER:
 	for _, dist := range distances[:distancesCnt] {
+		println("dist ", dist)
 		for _, pID := range distancesProducts[dist] {
 			prod := productsMap[pID]
 			recommendations = append(recommendations, common.Recommendation{
@@ -344,6 +353,11 @@ inner join shops s on (p.shop_id = s.id)`
 				Price:    int64(prod.Price),
 				Url:      prod.URL,
 			})
+
+			found++
+			if found == distancesCnt {
+				break OUTER
+			}
 		}
 	}
 
