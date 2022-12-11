@@ -21,7 +21,7 @@ type Recommendation struct {
 
 	// articul
 	// Required: true
-	Articul *string `json:"articul"`
+	Articul string `json:"articul"`
 
 	// barcode
 	// Required: true
@@ -29,11 +29,11 @@ type Recommendation struct {
 
 	// price
 	// Required: true
-	Price *int64 `json:"price"`
+	Price int64 `json:"price"`
 
 	// shop name
 	// Required: true
-	ShopName *string `json:"shopName"`
+	ShopName string `json:"shopName"`
 
 	// url
 	// Required: true
@@ -72,7 +72,7 @@ func (m *Recommendation) Validate(formats strfmt.Registry) error {
 
 func (m *Recommendation) validateArticul(formats strfmt.Registry) error {
 
-	if err := validate.Required("articul", "body", m.Articul); err != nil {
+	if err := validate.RequiredString("articul", "body", m.Articul); err != nil {
 		return err
 	}
 
@@ -90,7 +90,7 @@ func (m *Recommendation) validateBarcode(formats strfmt.Registry) error {
 
 func (m *Recommendation) validatePrice(formats strfmt.Registry) error {
 
-	if err := validate.Required("price", "body", m.Price); err != nil {
+	if err := validate.Required("price", "body", int64(m.Price)); err != nil {
 		return err
 	}
 
@@ -99,7 +99,7 @@ func (m *Recommendation) validatePrice(formats strfmt.Registry) error {
 
 func (m *Recommendation) validateShopName(formats strfmt.Registry) error {
 
-	if err := validate.Required("shopName", "body", m.ShopName); err != nil {
+	if err := validate.RequiredString("shopName", "body", m.ShopName); err != nil {
 		return err
 	}
 

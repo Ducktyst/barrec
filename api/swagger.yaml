@@ -27,11 +27,14 @@ definitions:
     properties:
       articul:
         type: string
+        x-nullable: false
       shopName:
         type: string
+        x-nullable: false
       price:
         type: number
         format: int64
+        x-nullable: false
       barcode:
         type: string
       url:

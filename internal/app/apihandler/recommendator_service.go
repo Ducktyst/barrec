@@ -52,10 +52,10 @@ func (srv *RecommendatorService) GetRecommendationsBarcodeHandler(params specops
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range res {
 		payload[i] = &specmodels.Recommendation{
-			Articul:  pointer.ToString(res[i].Name),
-			ShopName: pointer.ToString(res[i].ShopName),
+			Articul:  res[i].Name,
+			ShopName: res[i].ShopName,
 			Barcode:  pointer.ToString(params.Barcode),
-			Price:    pointer.ToInt64OrNil(res[i].Price),
+			Price:    res[i].Price,
 			URL:      pointer.ToString(res[i].Url),
 		}
 	}
@@ -91,10 +91,10 @@ func (srv *RecommendatorService) PostRecommendationsHandler(params specops.PostR
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range res {
 		payload[i] = &specmodels.Recommendation{
-			Articul:  pointer.ToString(res[i].Name),
-			ShopName: pointer.ToString(res[i].ShopName),
+			Articul:  res[i].Name,
+			ShopName: res[i].ShopName,
 			Barcode:  pointer.ToString(img_barcode),
-			Price:    pointer.ToInt64OrNil(res[i].Price),
+			Price:    res[i].Price,
 			URL:      pointer.ToString(res[i].Url),
 		}
 	}
@@ -122,10 +122,10 @@ func (srv *RecommendatorService) PostRecommendationsAnalyzeHandler(params specop
 	payload := make([]*specmodels.Recommendation, len(res))
 	for i := range res {
 		payload[i] = &specmodels.Recommendation{
-			Articul:  pointer.ToString(res[i].Name),
-			ShopName: pointer.ToString(res[i].ShopName),
+			Articul:  res[i].Name,
+			ShopName: res[i].ShopName,
 			Barcode:  pointer.ToString(img_barcode),
-			Price:    pointer.ToInt64OrNil(res[i].Price),
+			Price:    res[i].Price,
 			URL:      pointer.ToString(res[i].Url),
 		}
 	}
